@@ -1,0 +1,18 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthProvider
+@inject IHttpContextAccessor HttpContextAccessor
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar>
+        Family App <br />
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>

@@ -1,0 +1,38 @@
+﻿@page "/verse"
+@inject VerseService verseservice
+@rendermode InteractiveServer
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+	<MudPaper Class="pa-4">
+		@if (verseservice.Verse != null)
+		{
+			<h6>Verse.json</h6>
+		}
+
+		<h3>Verse</h3>
+
+		@if (!string.IsNullOrWhiteSpace(message))
+		{
+			<MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
+				@message
+			</MudAlert>
+		}
+	</MudPaper>
+</MudContainer>
+
+
+@code {
+	private string message = string.Empty;
+
+	private void GetVerse(string book, string chapter, string verses, string translation)
+	{
+		try
+		{
+			verseservice.GetVerse("john", "3", "16", "kjv");
+		}
+		catch (Exception ex)
+		{
+			message = ex.Message;
+		}
+	}
+}

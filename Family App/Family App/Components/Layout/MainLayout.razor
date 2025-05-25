@@ -1,0 +1,53 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthProvider
+@inject UserData userdata
+@inject NavigationManager nav
+@inject IHttpContextAccessor HttpContextAccessor
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        Family App <br/> 
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+    string? cookieContent;
+    string? username;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void Login()
+    {
+        nav.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void Logout()
+    {
+        userdata.User = null;
+        nav.NavigateTo("/", forceLoad: true);
+    }
+
+    bool _initialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Check local storage for a previous log-on
+    }
+}

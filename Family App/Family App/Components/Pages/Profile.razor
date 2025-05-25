@@ -1,0 +1,30 @@
+﻿@page "/profile"
+@inject UserData userdata
+@inject NavigationManager nav
+@rendermode InteractiveServer
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+<h3>Profile</h3>
+
+@if (userdata.User != null)
+{
+	<h4>Hello, @userdata.User.Username</h4>
+}
+else
+{
+	<p>Please login to see your profile information.</p>
+}
+</MudContainer>
+
+@code {
+	private void Login()
+	{
+		nav.NavigateTo("/login", forceLoad: true);
+	}
+
+	private void Logout()
+	{
+		userdata.User = null;
+		nav.NavigateTo("/profile", forceLoad: true);
+	}
+}
