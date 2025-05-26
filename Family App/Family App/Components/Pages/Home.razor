@@ -3,20 +3,25 @@
 @inject UserData userdata
 @inject NavigationManager nav
 
-    <PageTitle>Home</PageTitle>
+<PageTitle>Home</PageTitle>
 
-    <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
-        <MudGrid>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-                    @foreach (var user in userdata.Users)
-                    {
-                        <h6>@user.Username</h6>
-                    }
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                @foreach (var user in userdata.Users)
+                {
+                    <h6>@user.Username</h6>
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                @foreach (string component in components)
+                {
+                    @component
+                }
+            </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="12" md="4">
                 <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
@@ -50,5 +55,6 @@
 
 
 @code {
+    List<string> components = ReferenceParse.ConvertToReferenceParts("matt 25:31-33,46");
 }
 

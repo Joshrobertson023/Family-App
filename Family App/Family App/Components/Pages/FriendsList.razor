@@ -1,0 +1,25 @@
+﻿@page "/friendslist"
+@rendermode InteractiveServer
+@inject NavigationManager nav
+@inject UserData userdata
+
+<MudStack Class="mt-16 px-8">
+    <h3>Your Friends</h3>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back To Profile</MudButton>
+
+    @foreach (var user in userdata.Users)
+    {
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+            <MudStack Row="true">
+                <p>@user.Username</p>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">View Profile</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
+
+@code {
+
+}

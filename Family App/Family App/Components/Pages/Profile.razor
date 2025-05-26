@@ -3,20 +3,51 @@
 @inject NavigationManager nav
 @rendermode InteractiveServer
 
-<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
-<h3>Profile</h3>
+<MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
+	<h3>Profile</h3>
 
-@if (userdata.User != null)
-{
-	<h4>Hello, @userdata.User.Username</h4>
-}
-else
-{
-	<p>Please login to see your profile information.</p>
-}
-</MudContainer>
+	@if (userdata.User != null)
+	{
+		<h4>@userdata.User.Username</h4>
+		<h6>Verses memorized: 0</h6>
+		<h6>Friends: @userdata.Users.Count()</h6>
+		<MudButton onclick="FriendsList" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Your Friends</MudButton>
+
+		// @if (this is your profile)
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Account Settings</MudButton>
+
+		<h6>Verses</h6>
+		@foreach (var category in userdata.UserCategories)
+		{
+			<MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+				<MudStack Spacing="2">
+					@category
+				</MudStack>
+			</MudPaper>
+		}
+	}
+	else
+	{
+		<p>Please login to see your profile information.</p>
+	}
+</MudStack>
 
 @code {
+	List<bool> IsCollapsed = new List<bool>();
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		foreach (var category in userdata.UserCategories)
+		{
+			IsCollapsed.Add(true);
+		}
+	}
+
+	private void FriendsList()
+	{
+		nav.NavigateTo("/friendslist");
+	}
+
 	private void Login()
 	{
 		nav.NavigateTo("/login", forceLoad: true);

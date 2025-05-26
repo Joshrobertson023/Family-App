@@ -14,10 +14,11 @@ namespace DBAccessLibrary
     public class UserData
     {
         public List<UserModel> Users = new List<UserModel>();
-
         public UserModel? User;
+        public List<string> UserCategories = new List<string>();
+        public Dictionary<int, int> UserFriends = new Dictionary<int, int>(); // friend id, type
 
-        private string? connectionString;
+        private string connectionString;
 
         public UserData(IConfiguration config)
         {
@@ -62,6 +63,30 @@ namespace DBAccessLibrary
             {
                 throw new Exception("Function GetAllUsers failed: " + ex.Message);
             }
+        }
+
+        public async Task GetUserCategories()
+        {
+            string query = $@"
+                        SELECT * FROM usercategories where userid = :userid
+                        ";
+
+            OracleConnection conn = new OracleConnection(connectionString);
+            conn.Open();
+
+            OracleCommand cmd = new OracleCommand(query, conn);
+            cmd.Parameters.Add(new OracleParameter("userid", User.UserId));
+            OracleDataReader reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                string category = reader.GetString(reader.GetOrdinal("categoryname"));
+
+                UserCategories.Add(category);
+            }
+
+            conn.Close();
+            conn.Dispose();
         }
 
         public async Task AddUserAsync(UserModel user)

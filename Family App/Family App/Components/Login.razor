@@ -1,5 +1,6 @@
 ﻿@page "/login"
 @inject UserData userdata
+@inject VerseService verseservice
 @rendermode InteractiveServer
 @inject IHttpContextAccessor HttpContextAccessor
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
@@ -114,6 +115,10 @@
             if (Verify(password.Trim(), userdata.User.UserPassword))
             {
                 SetCookies();
+
+                await userdata.GetUserCategories();
+                await verseservice.GetUserVerses(userdata.User.UserId);
+
                 NavigationManager.NavigateTo("/home", forceLoad: true);
             }
             else

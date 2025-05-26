@@ -7,7 +7,7 @@
 
 @if (!loaded)
 {
-    
+
     <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
         <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
             <MudPaper Class="pa-4">
@@ -22,7 +22,7 @@ else if (!string.IsNullOrWhiteSpace(message))
         <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
             <MudPaper Class="pa-4">
                 <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-                    Unable to load data from database. Please reload the site.
+                    Error loading data from the database.
                 </MudAlert>
                 <MudButton OnClick="Reload" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto mt-3">Reload</MudButton>
             </MudPaper>
