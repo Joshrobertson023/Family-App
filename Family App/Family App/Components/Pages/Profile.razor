@@ -1,30 +1,20 @@
 ﻿@page "/profile"
-@inject UserData userdata
+@inject UserService userservice
 @inject NavigationManager nav
 @rendermode InteractiveServer
 
 <MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
 	<h3>Profile</h3>
 
-	@if (userdata.User != null)
+	@if (userservice.user != null)
 	{
-		<h4>@userdata.User.Username</h4>
+		<h4>@userservice.user.Username</h4>
 		<h6>Verses memorized: 0</h6>
-		<h6>Friends: @userdata.Users.Count()</h6>
+		<h6>Friends: @userservice.users.Count()</h6>
 		<MudButton onclick="FriendsList" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Your Friends</MudButton>
 
 		// @if (this is your profile)
 		<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Account Settings</MudButton>
-
-		<h6>Verses</h6>
-		@foreach (var category in userdata.UserCategories)
-		{
-			<MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-				<MudStack Spacing="2">
-					@category
-				</MudStack>
-			</MudPaper>
-		}
 	}
 	else
 	{
@@ -33,16 +23,6 @@
 </MudStack>
 
 @code {
-	List<bool> IsCollapsed = new List<bool>();
-
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		foreach (var category in userdata.UserCategories)
-		{
-			IsCollapsed.Add(true);
-		}
-	}
-
 	private void FriendsList()
 	{
 		nav.NavigateTo("/friendslist");
@@ -55,7 +35,7 @@
 
 	private void Logout()
 	{
-		userdata.User = null;
+		userservice.user = null;
 		nav.NavigateTo("/profile", forceLoad: true);
 	}
 }

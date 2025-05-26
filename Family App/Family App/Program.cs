@@ -34,12 +34,6 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var userService = scope.ServiceProvider.GetRequiredService<UserData>();
-//    await userService.GetAllUsers();
-//}
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Components\Pages\Login.razor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\DBAccessLibrary\DBAccessLibrary.csproj" />
     <ProjectReference Include="..\..\FamilyAppDB\FamilyAppDB.sqlproj" />
     <ProjectReference Include="..\Family App.Client\Family App.Client.csproj" />

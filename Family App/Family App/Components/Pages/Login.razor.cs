@@ -1,67 +1,13 @@
-﻿@page "/login"
-@inject UserData userdata
-@inject VerseService verseservice
-@rendermode InteractiveServer
-@inject IHttpContextAccessor HttpContextAccessor
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+﻿using DBAccessLibrary.Models;
+using DBAccessLibrary;
+using Microsoft.AspNetCore.Components;
+using System.Security.Cryptography;
+using DBAccessLibrary.Models;
 
-<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+namespace FamilyApp.Components.Pages;
 
-    @if (enteringName)
-    {
-        <h3>Login or Signup</h3>
-        <MudPaper Class="pa-4">
-            <MudTextField @bind-Value="username" HelperText="Username" T="string" Immediate="true" Required="true" />
-            <MudButton OnClick="Next" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Next</MudButton>
-        </MudPaper>
-    }
-    else
-    {
-        @if (registering)
-        {
-            <h3>Create a password:</h3>
-        }
-        else
-        {
-            <h3>Enter your password:</h3>
-        }
-        <MudTextField @bind-Value="password" T="string" HelperText="Enter your password"
-        InputType="InputType.Password"
-        Required="true"
-        Immediate="true"/>
-        @if (registering)
-        {
-            <MudTextField T="string"
-            Immediate="true"
-            @bind-Value="repeatPassword" HelperText="Re-enter your password" InputType="InputType.Password" />
-            <MudButton OnClick="Register" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
-        }
-        @if (!registering)
-        {
-            <MudButton OnClick="Signin" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Login</MudButton>
-        }
-        <MudButton OnClick="Back" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back</MudButton>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(errorMessage))
-    {
-        <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-            @errorMessage
-        </MudAlert>
-    }
-
-    @if (message != null)
-    {
-        <h4>@message</h4>
-    }
-
-    @if (userdata.User != null)
-    {
-        <h5>Welcome, @userdata.User.Username</h5>
-    }
-</MudContainer>
-
-@code {
+public partial class Login
+{
     private string? errorMessage;
     private bool enteringName = true;
     private bool registering = false;
@@ -71,23 +17,31 @@
     private string? message;
     private string? cookieMessage;
 
+    private UserService userservice;
+    private NavigationManager nav;
+
+    public Login(UserService userservice, NavigationManager nav)
+    {
+        this.userservice = userservice;
+        this.nav = nav;
+    }
+
     private async Task Next()
     {
         if (string.IsNullOrWhiteSpace(username))
         {
             errorMessage = "Please enter your username.";
-            StateHasChanged();
             errorMessage = null;
             return;
         }
 
         message = "Loading...";
 
-        foreach (var user in userdata.Users)
+        foreach (var user in userservice.users)
         {
             if (username.Trim() == user.Username.Trim())
             {
-                userdata.User = user;
+                userservice.user = user;
                 enteringName = false;
                 message = null;
                 return;
@@ -219,6 +173,4 @@
         return true;
     }
 
-
-    [Inject] NavigationManager NavigationManager { get; set; }
 }

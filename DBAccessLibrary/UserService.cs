@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 using DBAccessLibrary.Models;
 using Microsoft.Extensions.Configuration;
+using System.Globalization;
 
 namespace DBAccessLibrary
 {
@@ -58,7 +59,10 @@ namespace DBAccessLibrary
 
         public async Task GetUserCategoriesDBAsync()
         {
-            string query = @"SELECT * FROM USERCATEGORIES 
+            //userVerses = new Dictionary<Verse, string>();
+            userCategories = new List<string>();
+
+            string query = @"SELECT DISTINCT CATEGORY FROM userverses 
                              WHERE USERID = :userId";
 
             OracleConnection conn = new OracleConnection(connectionString);
@@ -70,7 +74,7 @@ namespace DBAccessLibrary
 
             while (await reader.ReadAsync())
             {
-                string category = reader.GetString(reader.GetOrdinal("categoryname"));
+                string category = reader.GetString(reader.GetOrdinal("CATEGORY"));
 
                 userCategories.Add(category);
             }

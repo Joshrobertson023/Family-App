@@ -1,0 +1,53 @@
+﻿@page "/myverses"
+@inject UserService userservice
+@inject VerseService verseservice
+@rendermode InteractiveServer
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+	<h3>My Verses</h3>
+	<MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
+		@if (userservice.user != null)
+		{
+			@foreach (var category in userservice.userCategories)
+			{
+				<MudPaper Elevation="2" Class="pa-4">
+					<MudStack Spacing="2">
+						<h6>@category</h6>
+
+						@foreach (var verse in verseservice.userVerses)
+						{
+							if (verse.Category == category)
+							{
+								<p>
+								@verse.Reference<br/>
+								@verse.Text<br/>
+								@verse.Translation<br/>
+								Progress: @verse.ProgressPercent<br/>
+								Last Practiced: @verse.LastPracticed<br/>
+								Times Reviewed: @verse.TimesReviewed<br/>
+								Times Memorized: @verse.TimesMemorized<br/>
+								Date Memorized: @verse.DateMemorized
+								</p>
+							}
+						}
+					</MudStack>
+				</MudPaper>
+			}
+		}
+		else
+		{
+			<p>Please login to see your verses.</p>
+		}
+	</MudStack>
+
+
+</MudContainer>
+
+@code {
+	List<Verse> versesInCategory = new List<Verse>();
+
+	private void CategorizeVerses()
+	{
+		
+	}
+}

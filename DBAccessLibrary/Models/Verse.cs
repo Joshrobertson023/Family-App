@@ -9,11 +9,10 @@ namespace DBAccessLibrary.Models
     public class Verse
     {
         public int Id { get; set; }
-        public string? Json { get; set; }
         public string Reference { get; set; }
-        public string Text { get; set; }
+        public string? Text { get; set; }
         public string Translation { get; set; }
-        public string Category { get; set; }
+        public string? Category { get; set; }
         public int? UserId { get; set; }
         public int? VerseId { get; set; }
         public float? ProgressPercent { get; set; }
@@ -24,13 +23,11 @@ namespace DBAccessLibrary.Models
 
         public Verse() { }
 
-        public Verse(int id, string reference, string text, string translation, string category)
+        public Verse(int id, string reference, string translation)
         {
             this.Id = id;
             this.Reference = reference;
-            this.Text = text;
             this.Translation = translation;
-            this.Category = category;
         }
     }
 }

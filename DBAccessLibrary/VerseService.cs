@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using DBAccessLibrary.Models;
 using Microsoft.Extensions.Configuration;
 using Oracle.ManagedDataAccess.Client;
+using System.Web.Helpers;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace DBAccessLibrary
 {
@@ -17,6 +20,8 @@ namespace DBAccessLibrary
         public Verse verse;
         public List<Verse> userVerses = new List<Verse>();
         public List<Verse> otherUserVerses = new List<Verse>();
+        //public Dictionary<Verse, string> userVerses = new Dictionary<Verse, string>(); // Verse, category
+        //public Dictionary<Verse, string> otherUserVerses = new Dictionary<Verse, string>(); // Verse, category
 
         public VerseService(IConfiguration config)
         {
@@ -28,45 +33,74 @@ namespace DBAccessLibrary
 
 
         /*
-         *      ------------------------ Bible-API Methods ------------------------
+         *      ------------------------ Bible-API Method ------------------------
          */
 
-        public async Task GetAPIVerseAsync(string book, string chapter, string verses, string translation="kjv")
+        public async Task<Verse> GetAPIVerseAsync(string reference, string translation)
         {
-            Verse verse = new Verse();
+            Verse returnVerse = new Verse();
 
-            HttpClient httpClient = new();
-            using HttpResponseMessage response 
-                = await httpClient.GetAsync($"https://bible-api.com/{book} {chapter}{verses}?translation={translation}");
+            string baseUrl = "https://bible-api.com/";
+            string url = $"{baseUrl}{reference}?translation={translation}";
 
-            response.EnsureSuccessStatusCode();
+            using HttpClient httpClient = new();
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            verse.Json = jsonResponse;
+            HttpResponseMessage response = await httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Critical error getting data from Bible API.");
+
+            string json = await response.Content.ReadAsStringAsync();
+
+            Root root = JsonSerializer.Deserialize<Root>(json);
+            returnVerse.Reference = root.Reference;
+            foreach (var verse in root.Verses)
+            {
+                JsonVerse jsonVerse = new JsonVerse();
+                returnVerse.Text += verse.Text;
+                returnVerse.Translation = verse.Translation;
+            }
+
+            return returnVerse;
         }
 
-        public async Task<string> GetAPIVerseTextAsync(string reference, string translation)
+        #region Json Classes
+        public class Root
         {
-            Verse verse = new Verse();
+            [JsonPropertyName("reference")]
+            public string Reference { get; set; }
 
-            string text = "";
-
-            List<string> components = ReferenceParse.ConvertToReferenceParts(reference);
-            string book = components[0];
-            string chapter = components[1];
-            string verses = components[2];
-
-            HttpClient httpClient = new();
-            using HttpResponseMessage response
-                = await httpClient.GetAsync($"https://bible-api.com/{book} {chapter}{verses}?translation={translation}");
-
-            response.EnsureSuccessStatusCode();
-
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            verse.Json = jsonResponse;
-
-            return text;
+            [JsonPropertyName("verses")]
+            public List<JsonVerse> Verses { get; set; }
         }
+
+        public class JsonVerse
+        {
+            [JsonPropertyName("book_id")]
+            public string BookId { get; set; }
+
+            [JsonPropertyName("book_name")]
+            public string BookName { get; set; }
+
+            [JsonPropertyName("chapter")]
+            public int Chapter { get; set; }
+
+            [JsonPropertyName("verse")]
+            public int VerseNumber { get; set; }
+
+            [JsonPropertyName("text")]
+            public string Text { get; set; }
+
+            [JsonPropertyName("translation_id")]
+            public string Translation { get; set; }
+
+            [JsonPropertyName("translation_name")]
+            public string TranslationName { get; set; }
+
+            [JsonPropertyName("translation_note")]
+            public string TranslationNote { get; set; }
+        }
+        #endregion
 
 
         /*
@@ -74,8 +108,7 @@ namespace DBAccessLibrary
          */
 
         public async Task AddNewUserVerseAsync(int userId,
-            string reference, 
-            string text, 
+            string reference,
             string translation, 
             string category = "No Category",
             float progressPercent = 0.0f,
@@ -89,9 +122,10 @@ namespace DBAccessLibrary
             if (nextVerseId == 0)
                 throw new Exception("Fatal error getting next verse ID.");
 
-            Verse newVerse = new Verse(nextVerseId, reference, text, translation, category);
-            userVerses.Add(newVerse);
+            Verse newVerse = new Verse(nextVerseId, reference, translation);
             await AddNewUserVerseDBAsync(userId, newVerse);
+
+            userVerses.Add(newVerse);
         }
 
 
@@ -101,24 +135,53 @@ namespace DBAccessLibrary
 
         public async Task GetUserVersesDBAsync(int userId)
         {
+            //userVerses = new Dictionary<Verse, string>();
             userVerses = new List<Verse>();
 
-            string query = $@"
-                        SELECT * FROM userverses where userid = :userid
-                        ";
+            string query = @"SELECT * FROM userverses 
+                             WHERE USERID = :userId";
 
             OracleConnection conn = new OracleConnection(connectionString);
             conn.Open();
 
             OracleCommand cmd = new OracleCommand(query, conn);
-            cmd.Parameters.Add(new OracleParameter("userid", userId));
+            cmd.Parameters.Add(new OracleParameter("userId", userId));
             OracleDataReader reader = await cmd.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
                 Verse verse = new Verse();
 
-                verse.UserId = reader.GetInt32(reader.GetOrdinal("verseid"));
+                verse.UserId = reader.GetInt32(reader.GetOrdinal("USERID"));
+                verse.VerseId = reader.GetInt32(reader.GetOrdinal("VERSEID"));
+                //string category = reader.GetString(reader.GetOrdinal("category"));
+                verse.Category = reader.GetString(reader.GetOrdinal("CATEGORY"));
+                verse.ProgressPercent = reader.GetFloat(reader.GetOrdinal("PROGRESSPERCENT"));
+                if (!reader.IsDBNull(reader.GetOrdinal("LASTPRACTICED")))
+                {
+                    DateTime date = reader.GetDateTime(reader.GetOrdinal("LASTPRACTICED"));
+                    verse.LastPracticed = date.ToString("U", CultureInfo.CreateSpecificCulture("en-US"));
+                }
+                else
+                {
+                    verse.LastPracticed = "";
+                }
+                // Displays Thursday, April 10, 2008 1:30:00 PM
+                verse.TimesReviewed = reader.GetInt32(reader.GetOrdinal("TIMESREVIEWED"));
+                verse.TimesMemorized = reader.GetInt32(reader.GetOrdinal("TIMESMEMORIZED"));
+                if (!reader.IsDBNull(reader.GetOrdinal("DATEMEMORIZED")))
+                {
+                    DateTime date2 = reader.GetDateTime(reader.GetOrdinal("DATEMEMORIZED"));
+                    verse.DateMemorized = date2.ToString("U", CultureInfo.CreateSpecificCulture("en-US"));
+                }
+                else
+                {
+                    verse.DateMemorized = "";
+                }
+                verse.Reference = reader.GetString(reader.GetOrdinal("REFERENCE"));
+                verse.Translation = reader.GetString(reader.GetOrdinal("TRANSLATION"));
+                Verse returnedVerse = await GetAPIVerseAsync(verse.Reference, verse.Translation);
+                verse.Text = returnedVerse.Text;
 
                 userVerses.Add(verse);
             }
@@ -131,35 +194,50 @@ namespace DBAccessLibrary
         {
             otherUserVerses = new List<Verse>();
 
-            string query = $@"
-                        SELECT * FROM userverses where userid = :userid
-                        ";
+            string query = @"SELECT * FROM USERVERSES
+                             WHERE USERID = :userId";
 
             OracleConnection conn = new OracleConnection(connectionString);
             conn.Open();
 
             OracleCommand cmd = new OracleCommand(query, conn);
-            cmd.Parameters.Add(new OracleParameter("userid", userId));
+            cmd.Parameters.Add(new OracleParameter("userId", userId));
             OracleDataReader reader = await cmd.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
                 Verse verse = new Verse();
 
-                verse.UserId = reader.GetInt32(reader.GetOrdinal("userid"));
-                verse.VerseId = reader.GetInt32(reader.GetOrdinal("verseid"));
-                verse.Category = reader.GetString(reader.GetOrdinal("category"));
-                verse.ProgressPercent = reader.GetFloat(reader.GetOrdinal("progresspercent"));
-                DateTime date = reader.GetDateTime(reader.GetOrdinal("lastpracticed"));
-                verse.LastPracticed = date.ToString("U", CultureInfo.CreateSpecificCulture("en-US"));
+                verse.UserId = reader.GetInt32(reader.GetOrdinal("USERID"));
+                verse.VerseId = reader.GetInt32(reader.GetOrdinal("VERSEID"));
+                //string category = reader.GetString(reader.GetOrdinal("category"));
+                verse.Category = reader.GetString(reader.GetOrdinal("CATEGORY"));
+                verse.ProgressPercent = reader.GetFloat(reader.GetOrdinal("PROGRESSPERCENT"));
+                if (!reader.IsDBNull(reader.GetOrdinal("LASTPRACTICED")))
+                {
+                    DateTime date = reader.GetDateTime(reader.GetOrdinal("LASTPRACTICED"));
+                    verse.LastPracticed = date.ToString("U", CultureInfo.CreateSpecificCulture("en-US"));
+                }
+                else
+                {
+                    verse.LastPracticed = "";
+                }
                 // Displays Thursday, April 10, 2008 1:30:00 PM
-                verse.TimesReviewed = reader.GetInt32(reader.GetOrdinal("timesreviewed"));
-                verse.TimesMemorized = reader.GetInt32(reader.GetOrdinal("timesmemorized"));
-                DateTime date2 = reader.GetDateTime(reader.GetOrdinal("datememorized"));
-                verse.DateMemorized = date2.ToString("U", CultureInfo.CreateSpecificCulture("en-US"));
-                verse.Reference = reader.GetString(reader.GetOrdinal("reference"));
-                verse.Translation = reader.GetString(reader.GetOrdinal("translation"));
-                verse.Text = await GetAPIVerseTextAsync(verse.Reference, verse.Translation);
+                verse.TimesReviewed = reader.GetInt32(reader.GetOrdinal("TIMESREVIEWED"));
+                verse.TimesMemorized = reader.GetInt32(reader.GetOrdinal("TIMESMEMORIZED"));
+                if (!reader.IsDBNull(reader.GetOrdinal("DATEMEMORIZED")))
+                {
+                    DateTime date2 = reader.GetDateTime(reader.GetOrdinal("DATEMEMORIZED"));
+                    verse.DateMemorized = date2.ToString("U", CultureInfo.CreateSpecificCulture("en-US"));
+                }
+                else
+                {
+                    verse.DateMemorized = "";
+                }
+                verse.Reference = reader.GetString(reader.GetOrdinal("REFERENCE"));
+                verse.Translation = reader.GetString(reader.GetOrdinal("TRANSLATION"));
+                Verse returnedVerse = await GetAPIVerseAsync(verse.Reference, verse.Translation);
+                verse.Text = returnedVerse.Text;
 
                 otherUserVerses.Add(verse);
             }
@@ -167,7 +245,6 @@ namespace DBAccessLibrary
             conn.Close();
             conn.Dispose();
         }
-
 
         public async Task AddNewUserVerseDBAsync(int userId, Verse verse)
         {
