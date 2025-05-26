@@ -13,7 +13,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddMudServices();
 
-builder.Services.AddSingleton<UserData>();
+builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<VerseService>();
 
 builder.Services.AddBlazoredLocalStorage();   // local storage
