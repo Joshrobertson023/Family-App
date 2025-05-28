@@ -1,12 +1,19 @@
-﻿@page "/profile"
+﻿@page "/defaultpagetemplate"
 @inject UserService userservice
+@inject VerseService verseservice
 @inject NavigationManager nav
 @rendermode InteractiveServer
 
-<MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
-	<h3>Profile</h3>
+@if (loading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+}
 
-	@if (!loaded)
+
+<MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
+    <h3>Profile</h3>
+
+    @if (!loaded)
     {
 
         <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
@@ -24,37 +31,23 @@
                 <MudPaper Class="pa-4">
                     <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
                         Error loading data from the database.<br /><br />
-                        @message
+                        @errorMessage
                     </MudAlert>
-                    <MudButton OnClick="Reload" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto mt-3">Reload</MudButton>
                 </MudPaper>
             </MudContainer>
         </MudStack>
     }
     else
     {
-		@if (userservice.user != null)
-		{
-			<h4 style="margin-bottom: 0;">@userservice.user.FullName</h4>
-            <h6 style="margin-top: -10px;">@("@" + userservice.user.Username)</h6>
-			<h6>Verses memorized: 0</h6>
-			<h6>Friends: @userservice.usernames.Count()</h6>
-			<MudButton onclick="FriendsList" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Your Friends</MudButton>
 
-			// @if (this is your profile)
-			<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Account Settings</MudButton>
-		}
-		else
-		{
-			<p>Please login to see your profile information.</p>
-		}
-	}
+    }
 </MudStack>
 
 @code {
     private string? errorMessage;
     private bool loaded = false;
     private string? message;
+    private bool loading { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -79,20 +72,4 @@
     {
         nav.NavigateTo("/profile", forceLoad: true);
     }
-
-	private void FriendsList()
-	{
-		nav.NavigateTo("/friendslist");
-	}
-
-	private void Login()
-	{
-		nav.NavigateTo("/login", forceLoad: true);
-	}
-
-	private void Logout()
-	{
-		userservice.user = null;
-		nav.NavigateTo("/profile", forceLoad: true);
-	}
 }

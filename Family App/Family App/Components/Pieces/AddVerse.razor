@@ -1,81 +1,211 @@
-﻿@page "/addverse"
+﻿@inject VerseService verseservice
+@inject UserService userservice
+@rendermode InteractiveServer
 
-<h3>Add a Verse</h3>
 
-<MudStack Style="width: 300px">
-    @foreach (var variant in Enum.GetValues(typeof(Variant)).Cast<Variant>())
-    {
-        <MudSelect @bind-Value="book"
-        Variant="variant"
-        Label="@variant.ToString()"
-        HelperText="Book"
-        ValueChanged="OnBookChange">
-            @foreach (var book in books)
-            {
-                <MudSelectItem Value="book">@book</MudSelectItem>
-            }
-        </MudSelect>
-    }
-    @foreach (var variant in Enum.GetValues(typeof(Variant)).Cast<Variant>())
+@if (loading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+}
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
+        <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
+            <MudPaper Class="pa-4">
+                <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
+                    Error loading data from the database.<br /><br />
+                    @errorMessage
+                </MudAlert>
+            </MudPaper>
+        </MudContainer>
+    </MudStack>
+}
+
+<MudStack Row>
+    <MudSelect @bind-Value="book"
+    Label="Book"
+    Variant="Variant.Outlined"
+    Style="width: 200px">
+        @foreach (var b in books)
+        {
+            <MudSelectItem Value="@b.ToString()">@b</MudSelectItem>
+        }
+    </MudSelect>
+    @if (!string.IsNullOrEmpty(book))
     {
         <MudSelect @bind-Value="chapter"
-        Variant="variant"
-        Label="@variant.ToString()"
-        HelperText="Chapter"
-        ValueChanged="OnChapterChange">
-            @foreach (var chapter in chapters)
+        Variant="Variant.Outlined"
+        Label="Chapter"
+        Style="width: 100px">
+            @for (int i = 1; i <= numChapters; i++)
             {
-                <MudSelectItem Value="book">@book</MudSelectItem>
+                var localI = i;
+                <MudSelectItem Value="@localI">@localI</MudSelectItem>
+            }
+
+        </MudSelect>
+    }
+    @if (chapter > 0)
+    {
+        <MudSelect T="int"
+        @bind-SelectedValues="verses"
+        Variant="Variant.Outlined"
+        Label="Select Verses"
+        MultiSelection="true"
+        Style="width: 100px">
+            @for (int i = 1; i <= numVerses; i++)
+            {
+                var localI = i;
+                <MudSelectItem T="int" Value="@localI">@localI</MudSelectItem>
+            }
+
+        </MudSelect>
+    }
+    @if (verses.Any())
+    {
+        <MudSelect @bind-Value="category"
+        Variant="Variant.Outlined"
+        Label="Category"
+        Style="width: 200px">
+            @foreach (var c in userservice.userCategories)
+            {
+                <MudSelectItem Value="c">@c</MudSelectItem>
             }
         </MudSelect>
+        if (!showNewCategoryComponent)
+        {
+            <MudButton OnClick="ToggleNewCategory" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">New Category</MudButton>
+        }
+        else
+        {
+            <NewCategory NewCategory="@newCategory" OnCategoryChange="SubmitCategory"></NewCategory>
+        }
+
+        <MudButton OnClick="SubmitVerse" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verse</MudButton>
     }
 </MudStack>
 
 @code {
-    private string book = string.Empty;
-    private int chapter;
-    private int verse;
-    private int[] chapters;
-    private int[] verses;
+    private string _book;
+    private int _chapter;
+    private int _verse;
+
+    private string errorMessage { get; set; }
+    private string newCategory { get; set; }
+
+    private string book
+    {
+        get => _book;
+        set
+        {
+            if (_book != value)
+            {
+                _book = value;
+                OnBookChange();
+            }
+        }
+    }
+
+    private int chapter
+    {
+        get => _chapter;
+        set
+        {
+            if (_chapter != value)
+            {
+                _chapter = value;
+                OnChapterChange();
+            }
+        }
+    }
+
+    private int verse
+    {
+        get => _verse;
+        set => _verse = value;
+    }
+
+    private IEnumerable<int> verses { get; set; } = Array.Empty<int>();
+    private string category = "Uncategorized";
+    private int numChapters;
+    private int numVerses;
+    private bool showNewCategoryComponent = false;
+    private bool loading = false;
+    [Parameter]
+    public bool addingVerse { get; set; }
+    [Parameter]
+    public EventCallback<bool> AddingVerseChange { get; set; }
+    [Parameter]
+    public EventCallback OnVerseAdded { get; set; }
 
     private void OnBookChange()
     {
         chapter = 0;
-        verse = 0;
+        verses = Array.Empty<int>();
 
-        switch (book)
-        {
-            case "Genesis":
-                chapters = Enumerable.Range(1, 50).ToArray();
-                break;
-            default:
-                throw new Exception("Critical error changing selected book.");
-        }
+        numChapters = verseservice.GetNumberChapters(book);
+        numVerses = 0;
     }
 
     private void OnChapterChange()
     {
-        verse = 0;
+        verses = Array.Empty<int>();
+
+        numVerses = verseservice.GetNumberVerses(book, chapter);
     }
 
-    private class Bible
+    private async Task SubmitVerse()
     {
-        private readonly string[] books =
+        try
         {
-            "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-            "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
-            "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
-            "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
-            "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
-            "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
-            "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
-            "Zephaniah", "Haggai", "Zechariah", "Malachi",
-            "Matthew", "Mark", "Luke", "John", "Acts",
-            "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
-            "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy",
-            "2 Timothy", "Titus", "Philemon", "Hebrews", "James",
-            "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
-            "Jude", "Revelation"
-        };
+            List<int> submitVerses = verses.ToList();
+            submitVerses.Sort();
+            loading = true;
+            StateHasChanged();
+            await verseservice.AddNewUserVerseAsync(userservice.user.Id,
+                                                    ReferenceParse.ConvertToReferenceString(book, chapter, submitVerses),
+                                                    category);
+            await userservice.SetUserActiveDBAsync(userservice.user.Id);
+            addingVerse = false;
+            await OnVerseAdded.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
     }
+
+    private void ToggleNewCategory()
+    {
+        showNewCategoryComponent = !showNewCategoryComponent;
+    }
+
+    private void SubmitCategory()
+    {
+        showNewCategoryComponent = !showNewCategoryComponent;
+        category = newCategory;
+    }
+
+    private readonly string[] books =
+    {
+        "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+        "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
+        "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
+        "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
+        "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
+        "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
+        "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
+        "Zephaniah", "Haggai", "Zechariah", "Malachi",
+        "Matthew", "Mark", "Luke", "John", "Acts",
+        "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
+        "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy",
+        "2 Timothy", "Titus", "Philemon", "Hebrews", "James",
+        "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
+        "Jude", "Revelation"
+    };
 }

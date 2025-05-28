@@ -6,22 +6,78 @@
 <MudStack Class="mt-16 px-8">
     <h3>Your Friends</h3>
 
-    <MudButton OnClick="GoBack" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back To Profile</MudButton>
-
-    @foreach (var user in userservice.users)
+    	    @if (!loaded)
     {
-        <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-            <MudStack Row="true">
-                <p>@user.Username</p>
-                <p>Last seen: @user.LastSeen</p>
-                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">View Profile</MudButton>
-            </MudStack>
-        </MudPaper>
+
+        <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
+            <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
+                <MudSkeleton />
+                <MudSkeleton SkeletonType="SkeletonType.Circle" Width="50px" Height="50px" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="200px" Height="110px" />
+            </MudContainer>
+        </MudStack>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
+            <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
+                <MudPaper Class="pa-4">
+                    <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
+                        Error loading data from the database.<br /><br />
+                        @message
+                    </MudAlert>
+                    <MudButton OnClick="Reload" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto mt-3">Reload</MudButton>
+                </MudPaper>
+            </MudContainer>
+        </MudStack>
+    }
+    else
+    {
+        <MudButton OnClick="GoBack" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back To Profile</MudButton>
+
+        @foreach (var user in userservice.userFriends.Keys)
+        {
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                <MudStack Row="true">
+                    <p>@user.Username</p>
+                    <p>Last seen: @user.LastSeen</p>
+                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">View Profile</MudButton>
+                </MudStack>
+            </MudPaper>
+        }
     }
 </MudStack>
 
 
 @code {
+    private string? errorMessage;
+    private bool loaded = false;
+    private string? message;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loaded = false;
+            try
+            {
+                await userservice.GetUserFriendsDBAsync(userservice.user.Id);
+                loaded = true;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                loaded = true;
+            }
+        }
+    }
+
+    private void Reload()
+    {
+        nav.NavigateTo("/profile", forceLoad: true);
+    }
+
     private void GoBack()
     {
         nav.NavigateTo("/profile");

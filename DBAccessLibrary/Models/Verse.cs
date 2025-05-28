@@ -23,9 +23,8 @@ namespace DBAccessLibrary.Models
 
         public Verse() { }
 
-        public Verse(int id, string reference, string translation)
+        public Verse(string reference, string translation)
         {
-            this.Id = id;
             this.Reference = reference;
             this.Translation = translation;
         }

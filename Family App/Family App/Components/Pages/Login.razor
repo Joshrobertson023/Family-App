@@ -6,8 +6,25 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager nav
 
+    @if (loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+    }
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
 
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
+            <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
+                <MudPaper Class="pa-4">
+                    <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
+                        Error loading data from the database.<br /><br />
+                        @errorMessage
+                    </MudAlert>
+                </MudPaper>
+            </MudContainer>
+        </MudStack>
+    }
     @if (enteringName)
     {
         <h3>Login or Signup</h3>
@@ -18,42 +35,18 @@
     }
     else
     {
-        @if (registering)
-        {
-            <h3>Create a password:</h3>
-        }
-        else
-        {
-            <h3>Enter your password:</h3>
-        }
+        <h3>Enter your password:</h3>
         <MudTextField @bind-Value="password" T="string" HelperText="Enter your password"
         InputType="InputType.Password"
         Required="true"
         Immediate="true"/>
-        @if (registering)
-        {
-            <MudTextField T="string"
-            Immediate="true"
-            @bind-Value="repeatPassword" HelperText="Re-enter your password" InputType="InputType.Password" />
-            <MudButton OnClick="Register" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
-        }
-        @if (!registering)
-        {
-            <MudButton OnClick="Signin" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Login</MudButton>
-        }
+        <MudButton OnClick="Signin" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Login</MudButton>
         <MudButton OnClick="Back" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back</MudButton>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(errorMessage))
-    {
-        <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-            @errorMessage
-        </MudAlert>
     }
 
     @if (message != null)
     {
-        <h4>@message</h4>
+        <p>@message</p>
     }
 
     @if (userservice.user != null)
@@ -65,43 +58,64 @@
 @code {
     private string? errorMessage;
     private bool enteringName = true;
-    private bool registering = false;
+    private bool loading = false;
     private string? username;
     private string? password;
     private string? repeatPassword;
     private string? message;
     private string? cookieMessage;
+    UserModel userLoggingIn;
+    private int retryCount { get; set; } = 0;
+
+    private void Reload()
+    {
+        nav.NavigateTo("/login", forceLoad: true);
+    }
 
     private async Task Next()
     {
-        if (string.IsNullOrWhiteSpace(username))
+        try
         {
-            errorMessage = "Please enter your username.";
-            errorMessage = null;
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(username))
+                throw new Exception("Please enter a username.");
 
-        message = "Loading...";
+            loading = true;
+            message = "";
+            errorMessage = "";
 
-        foreach (var user in userservice.users)
-        {
-            if (username.Trim() == user.Username.Trim())
+            await userservice.GetAllUsernamesDBAsync();     
+
+            foreach (var _username in userservice.usernames)
             {
-                userservice.user = user;
-                enteringName = false;
-                message = null;
-                return;
+                if (username.Trim() == _username.Trim())
+                {
+                    userLoggingIn = await userservice.GetUserDBAsync(username.Trim());
+                    enteringName = false;
+                    errorMessage = "";
+                    loading = false;
+                    return;
+                }
+            }
+
+            message = "Username does not exist.";
+            enteringName = true;
+            loading = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            if (errorMessage.ToLower().Contains("timed out"))
+            {
+                errorMessage += "\n (Retry count: " + retryCount + ") Retrying...";
+                retryCount++;
+                await Next();
             }
         }
-        registering = true;
-        enteringName = false;
-        message = null;
     }
 
     private void Back()
     {
         enteringName = true;
-        registering = false;
         message = null;
     }
 
@@ -112,15 +126,18 @@
             if (string.IsNullOrWhiteSpace(password))
                 throw new Exception("Please enter your password.");
 
-            if (Verify(password.Trim(), userservice.user.UserPassword))
+            if (Verify(password.Trim(), userLoggingIn.UserPassword))
             {
                 //SetCookies();
+                loading = true;
+                StateHasChanged();
+                await userservice.GetUserCategoriesDBAsync(userLoggingIn.Id);
+                await verseservice.GetUserVersesDBAsync(userLoggingIn.Id);
+                await userservice.SetUserActiveDBAsync(userLoggingIn.Id);
+                userservice.user = userLoggingIn;
+                loading = false;
 
-                await userservice.GetUserCategoriesDBAsync();
-                await verseservice.GetUserVersesDBAsync(userservice.user.Id);
-                await userservice.SetUserActiveDBAsync();
-
-                nav.NavigateTo("/home", forceLoad: true);
+                nav.NavigateTo("/", forceLoad: true);
             }
             else
             {
@@ -132,71 +149,6 @@
             errorMessage = ex.Message;
         }
     }
-
-    private async Task Register()
-    {
-        try
-        {
-            if (String.IsNullOrWhiteSpace(password) || String.IsNullOrWhiteSpace(repeatPassword))
-                throw new Exception("Please enter both passwords.");
-
-            if (password != repeatPassword)
-                throw new Exception("Passwords do not match.");
-
-            userservice.user = new UserModel();
-            userservice.user.Id = await GenerateNextUserId();
-            userservice.user.Username = username;
-            userservice.user.UserPassword = CreateHash(password.Trim());
-
-            await userservice.AddUserDBAsync(userservice.user);
-
-            //SetCookies();
-
-            nav.NavigateTo("/home", forceLoad: true);
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-    }
-
-    // private async Task SetCookies()
-    // {
-    //     if (userservice.user.Username != null)
-    //         await localStorage.SetItemAsync("cookieName", userservice.user.Username.Trim());
-    // }
-
-    private async Task<int> GenerateNextUserId()
-    {
-        try
-        {
-            int nextId = await userservice.GetNextUserIdDBAsync();
-            return nextId;
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-        return 0;
-    }
-
-    private string CreateHash(string password)
-    {
-        byte[] salt = new byte[16];
-        new RNGCryptoServiceProvider().GetBytes(salt);
-
-        const int iterations = 100000;
-        var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
-        byte[] hash = pbkdf2.GetBytes(20);
-
-        byte[] hashBytes = new byte[36];
-        Array.Copy(salt, 0, hashBytes, 0, 16);
-        Array.Copy(hash, 0, hashBytes, 16, 20);
-
-        string base64Hash = Convert.ToBase64String(hashBytes);
-        return $"{base64Hash}";
-    }
-
 
     public static bool Verify(string password, string hashedPassword)
     {

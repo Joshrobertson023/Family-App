@@ -31,5 +31,28 @@ namespace DBAccessLibrary
 
             return components;
         }
+
+        public static string ConvertToReferenceString(string book, int chapter, List<int> verses)
+        {
+            string returnString = "";
+
+            returnString += book + " " + chapter.ToString() + ":";
+
+            if (verses.Count > 1)
+            {
+                for (int i = 0; i < verses.Count; i++)
+                {
+                    returnString += verses[i].ToString();
+                    if (i < verses.Count - 1)
+                        returnString += ",";
+                }
+            }
+            else
+            {
+                returnString += verses[0].ToString();
+            }
+
+            return returnString;
+        }
     }
 }

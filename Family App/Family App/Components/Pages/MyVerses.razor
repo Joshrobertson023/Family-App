@@ -1,13 +1,28 @@
 ﻿@page "/myverses"
 @inject UserService userservice
 @inject VerseService verseservice
+@inject NavigationManager nav
 @rendermode InteractiveServer
+
+@if (loading)
+{
+	<MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+}
 
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
 	<h3>My Verses</h3>
+
 	<MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
 		@if (userservice.user != null)
 		{
+			if (!addingVerse)
+			{
+				<MudButton OnClick="AddVerses" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verses</MudButton>
+			}
+			else
+			{
+				<Family_App.Components.Pieces.AddVerse AddingVerse="@addingVerse" OnVerseAdded="RefreshVerses"></Family_App.Components.Pieces.AddVerse>
+			}
 			@foreach (var category in userservice.userCategories)
 			{
 				<MudPaper Elevation="2" Class="pa-4">
@@ -19,14 +34,14 @@
 							if (verse.Category == category)
 							{
 								<p>
-								@verse.Reference<br/>
-								@verse.Text<br/>
-								@verse.Translation<br/>
-								Progress: @verse.ProgressPercent<br/>
-								Last Practiced: @verse.LastPracticed<br/>
-								Times Reviewed: @verse.TimesReviewed<br/>
-								Times Memorized: @verse.TimesMemorized<br/>
-								Date Memorized: @verse.DateMemorized
+									@verse.Reference<br/>
+									@verse.Text<br/>
+									@verse.Translation<br/>
+									Progress: @verse.ProgressPercent<br/>
+									Last Practiced: @verse.LastPracticed<br/>
+									Times Reviewed: @verse.TimesReviewed<br/>
+									Times Memorized: @verse.TimesMemorized<br/>
+									Date Memorized: @verse.DateMemorized
 								</p>
 							}
 						}
@@ -44,10 +59,27 @@
 </MudContainer>
 
 @code {
+	public bool addingVerse { get; set; }
+	private bool loading { get; set; }
+
 	List<Verse> versesInCategory = new List<Verse>();
 
 	private void CategorizeVerses()
 	{
-		
+
+	}
+
+	private void AddVerses()
+	{
+		addingVerse = true;
+	}
+
+	private async Task RefreshVerses()
+	{
+		addingVerse = false;
+		loading = true;
+		await verseservice.GetUserVersesDBAsync(userservice.user.Id);
+		await userservice.GetUserCategoriesDBAsync(userservice.user.Id);
+		loading = false;
 	}
 }

@@ -1,29 +1,31 @@
 ﻿@rendermode InteractiveServer
 @inject AuthenticationStateProvider AuthProvider
 @inject UserService userservice
+@inject VerseService verseservice
 @inject NavigationManager nav
 @inject IHttpContextAccessor HttpContextAccessor
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <MudNavMenu>
-    <MudNavLink Href="/home" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
     <MudNavLink Href="/myverses" Match="NavLinkMatch.Prefix">My Verses</MudNavLink>
     <MudNavLink Href="/profile" Match="NavLinkMatch.Prefix">Profile</MudNavLink>
-        @if (userservice.user != null)
-        {
-                <MudPaper Class="pa-4 ma-3">
-                    <MudStack Spacing="2">
-                        @userservice.user.Username
-                        <MudButton OnClick="Logout" Variant="Variant.Text" Color="Color.Primary" Class="ml-auto">Sign out</MudButton>
-                    </MudStack>
-                </MudPaper>
-        }
-        @if (userservice.user == null)
-        {
-            <MudPaper Class="pa-4 ma-3">
-                <MudButton OnClick="Login" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Sign in</MudButton>
-            </MudPaper>
-        }
+    @if (userservice.user != null)
+    {
+        <MudPaper Class="pa-4 ma-3">
+            <MudStack Spacing="2">
+                @userservice.user.Username
+                <MudButton OnClick="Logout" Variant="Variant.Text" Color="Color.Primary" Class="ml-auto">Sign out</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+    @if (userservice.user == null)
+    {
+        <MudPaper Class="pa-4 ma-3">
+            <MudButton OnClick="Login" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Sign in</MudButton>
+            <MudButton OnClick="CreateAccount" Variant="Variant.Text" Color="Color.Primary" Class="ml-auto">Create Account</MudButton>
+        </MudPaper>
+    }
 </MudNavMenu>
 
 @code {
@@ -35,9 +37,15 @@
         nav.NavigateTo("/login");
     }
 
+    private void CreateAccount()
+    {
+        nav.NavigateTo("/createaccount");
+    }
+
     private void Logout()
     {
-        userservice.user = null;
+        userservice.LogoutUser();
+        verseservice.LogoutUser();
         nav.NavigateTo("/", forceLoad: true);
     }
 

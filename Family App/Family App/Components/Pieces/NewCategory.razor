@@ -1,0 +1,20 @@
+﻿@inject UserService userservice
+
+<MudPaper Class="pa-4">
+    <MudTextField @bind-Value="category" HelperText="New Category Name" T="string" Immediate="true" Required="true" />
+    <MudButton OnClick="AddCategory" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Create Category</MudButton>
+</MudPaper>
+
+@code {
+    private string category;
+    [Parameter]
+    public string newCategory { get; set; }
+    [Parameter]
+    public EventCallback OnCategoryChange { get; set; }
+
+    private async Task AddCategory()
+    {
+        userservice.userCategories.Add(category);
+        await OnCategoryChange.InvokeAsync();
+    }
+}

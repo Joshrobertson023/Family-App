@@ -1,4 +1,4 @@
-﻿@page "/home"
+﻿@page "/"
 @rendermode InteractiveServer
 @inject UserService userservice
 @inject NavigationManager nav
@@ -9,18 +9,17 @@
     <MudGrid>
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-                @foreach (var user in userservice.users)
+                @if (userservice.users != null)
                 {
-                    <h6>@user.Username</h6>
+                    @foreach (var user in userservice.users)
+                    {
+                        <h6>@user.Username</h6>
+                    }
                 }
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-                @foreach (string component in components)
-                {
-                    @component
-                }
             </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="12" md="4">
@@ -55,6 +54,5 @@
 
 
 @code {
-    List<string> components = ReferenceParse.ConvertToReferenceParts("matt 25:31-33,46");
 }
 

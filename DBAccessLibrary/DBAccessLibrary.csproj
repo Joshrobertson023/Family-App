@@ -8,6 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="kjv_book_chapter_verse_counts.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="kjv_book_chapter_verse_counts.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />

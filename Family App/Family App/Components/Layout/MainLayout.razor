@@ -5,10 +5,10 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-<MudThemeProvider />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+<MudThemeProvider @rendermode="InteractiveServer" />
+<MudPopoverProvider @rendermode="InteractiveServer" />
+<MudDialogProvider @rendermode="InteractiveServer" />
+<MudSnackbarProvider @rendermode="InteractiveServer" />
 
 <MudLayout>
     <MudAppBar>
