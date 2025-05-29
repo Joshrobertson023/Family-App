@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Family App", "Family App\Family App\Family App.csproj", "{69C56C30-CE3C-4BF2-8659-4909577E7E92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VerseApp", "Family App\Family App\VerseApp.csproj", "{69C56C30-CE3C-4BF2-8659-4909577E7E92}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Family App.Client", "Family App\Family App.Client\Family App.Client.csproj", "{33767063-4CB0-42A2-BFF0-54D5E0DFC511}"
-EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "FamilyAppDB", "FamilyAppDB\FamilyAppDB.sqlproj", "{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBAccessLibrary", "DBAccessLibrary\DBAccessLibrary.csproj", "{199D59F0-12DF-42DC-B18B-A258FF674FA6}"
 EndProject
@@ -25,12 +23,6 @@ Global
 		{33767063-4CB0-42A2-BFF0-54D5E0DFC511}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33767063-4CB0-42A2-BFF0-54D5E0DFC511}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33767063-4CB0-42A2-BFF0-54D5E0DFC511}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E01894B-3E3C-46D2-8D3D-5E12A3650B93}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{199D59F0-12DF-42DC-B18B-A258FF674FA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{199D59F0-12DF-42DC-B18B-A258FF674FA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{199D59F0-12DF-42DC-B18B-A258FF674FA6}.Release|Any CPU.ActiveCfg = Release|Any CPU

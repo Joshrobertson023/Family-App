@@ -149,26 +149,4 @@
             errorMessage = ex.Message;
         }
     }
-
-    public static bool Verify(string password, string hashedPassword)
-    {
-        int iterations = 100000;
-        string base64Hash = hashedPassword;
-
-        byte[] hashBytes = Convert.FromBase64String(base64Hash);
-
-        byte[] salt = new byte[16];
-        Array.Copy(hashBytes, 0, salt, 0, 16);
-
-        var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
-        byte[] hash = pbkdf2.GetBytes(20);
-
-        for (int i = 0; i < 20; i++)
-        {
-            if (hashBytes[i + 16] != hash[i])
-                return false;
-        }
-
-        return true;
-    }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DBAccessLibrary
 {
-    public class ReferenceParse
+    public static class ReferenceParse
     {
         public static List<string> ConvertToReferenceParts(string reference)
         {

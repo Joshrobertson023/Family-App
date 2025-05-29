@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Family App</RootNamespace>
+    <RootNamespace>Verse App</RootNamespace>
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
     <UserSecretsId>19acde84-e384-4519-ab3e-b35483f9f2e4</UserSecretsId>
   </PropertyGroup>
@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\DBAccessLibrary\DBAccessLibrary.csproj" />
-    <ProjectReference Include="..\..\FamilyAppDB\FamilyAppDB.sqlproj" />
     <ProjectReference Include="..\Family App.Client\Family App.Client.csproj" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Dapper" Version="2.1.66" />
