@@ -3,39 +3,28 @@
 @inject VerseService verseservice
 @inject NavigationManager nav
 @rendermode InteractiveServer
-@namespace FamilyApp.Components.Pages
+@namespace VerseApp.Components.Pages
 
 
 @if (loading)
 {
     <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
 }
-
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <MudAlert Style="margin-bottom: 15px;" Severity="Severity.Error" Elevation="2" Class="mt-2">
+        @errorMessage
+    </MudAlert>
+}
 
 <MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
-    <h3>Profile</h3>
-
     @if (!loaded)
     {
-
         <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
             <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
                 <MudSkeleton />
                 <MudSkeleton SkeletonType="SkeletonType.Circle" Width="50px" Height="50px" />
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="200px" Height="110px" />
-            </MudContainer>
-        </MudStack>
-    }
-    @if (!string.IsNullOrWhiteSpace(errorMessage))
-    {
-        <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
-            <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
-                <MudPaper Class="pa-4">
-                    <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-                        Error loading data from the database.<br /><br />
-                        @errorMessage
-                    </MudAlert>
-                </MudPaper>
             </MudContainer>
         </MudStack>
     }
@@ -45,33 +34,23 @@
     }
 </MudStack>
 
-@code {
-    private string? errorMessage;
-    private bool loaded = false;
-    private string? message;
-    private bool loading { get; set; }
+@*
+<MudFab OnClick="Back" Style="position: fixed; top: 80px; left: 273px; z-index: 999;"  Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"/>
+*@
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            loaded = false;
-            try
-            {
-                //await userservice.GetAllUsernamesDBAsync();
-                loaded = true;
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                loaded = true;
-            }
-        }
-    }
+@code {
+    private string? errorMessage { get; set; }
+    private bool loaded { get; set; } = false;
+    private string? message { get; set; }
+    private bool loading { get; set; }
 
     private void Reload()
     {
         nav.NavigateTo("/profile", forceLoad: true);
+    }
+
+    private void Back()
+    {
+        
     }
 }

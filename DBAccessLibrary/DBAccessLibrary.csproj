@@ -8,11 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="kjv_book_chapter_verse_counts.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="kjv_book_chapter_verse_counts.json">
+    <Content Include="bible_structure.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

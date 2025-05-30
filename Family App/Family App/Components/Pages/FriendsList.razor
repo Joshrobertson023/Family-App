@@ -1,8 +1,6 @@
 ﻿@page "/friendslist"
 @rendermode InteractiveServer
-@inject NavigationManager nav
-@inject UserService userservice
-@namespace 
+@namespace VerseApp.Components.Pages
 
 <MudStack Class="mt-16 px-8">
     <h3>Your Friends</h3>
@@ -36,7 +34,7 @@
     {
         <MudButton OnClick="GoBack" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back To Profile</MudButton>
 
-        @foreach (var user in userservice.userFriends.Keys)
+        @foreach (var user in userservice.currentUserFriends.Keys)
         {
             <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
                 <MudStack Row="true">
@@ -48,3 +46,23 @@
         }
     }
 </MudStack>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loaded = false;
+            try
+            {
+                await userservice.GetUserFriendsDBAsync(userservice.currentUser.Id);
+                loaded = true;
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                loaded = true;
+            }
+        }
+    }
+}

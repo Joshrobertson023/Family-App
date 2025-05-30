@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace VerseApp.Components.Pages
 {
-    public partial class FriendsList : ComponentBase
+    public partial class Profile : ComponentBase
     {
         [Inject]
         NavigationManager nav { get; set; }
@@ -20,9 +20,20 @@ namespace VerseApp.Components.Pages
             nav.NavigateTo("/profile", forceLoad: true);
         }
 
-        private void GoBack()
+        private void FriendsList()
         {
-            nav.NavigateTo("/profile");
+            nav.NavigateTo("/friendslist");
+        }
+
+        private void Login()
+        {
+            nav.NavigateTo("/login", forceLoad: true);
+        }
+
+        private void Logout()
+        {
+            userservice.currentUser = null;
+            nav.NavigateTo("/profile", forceLoad: true);
         }
     }
 }

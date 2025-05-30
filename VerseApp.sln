@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VerseApp", "Family App\Family App\VerseApp.csproj", "{69C56C30-CE3C-4BF2-8659-4909577E7E92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Family App.Client", "Family App\Family App.Client\Family App.Client.csproj", "{33767063-4CB0-42A2-BFF0-54D5E0DFC511}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VerseApp.Client", "Family App\Family App.Client\VerseApp.Client.csproj", "{33767063-4CB0-42A2-BFF0-54D5E0DFC511}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBAccessLibrary", "DBAccessLibrary\DBAccessLibrary.csproj", "{199D59F0-12DF-42DC-B18B-A258FF674FA6}"
 EndProject

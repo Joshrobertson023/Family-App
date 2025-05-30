@@ -10,16 +10,16 @@
     <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
     <MudNavLink Href="/myverses" Match="NavLinkMatch.Prefix">My Verses</MudNavLink>
     <MudNavLink Href="/profile" Match="NavLinkMatch.Prefix">Profile</MudNavLink>
-    @if (userservice.user != null)
+    @if (userservice.currentUser != null)
     {
         <MudPaper Class="pa-4 ma-3">
             <MudStack Spacing="2">
-                @userservice.user.Username
+                userservice.currentUser.Username
                 <MudButton OnClick="Logout" Variant="Variant.Text" Color="Color.Primary" Class="ml-auto">Sign out</MudButton>
             </MudStack>
         </MudPaper>
     }
-    @if (userservice.user == null)
+    @if (userservice.currentUser == null)
     {
         <MudPaper Class="pa-4 ma-3">
             <MudButton OnClick="Login" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Sign in</MudButton>

@@ -1,0 +1,114 @@
+﻿@page "/login"
+@rendermode InteractiveServer
+@inject IHttpContextAccessor HttpContextAccessor
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@namespace VerseApp.Components.Pages
+
+@if (loading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+}
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudAlert Style="margin-bottom: 15px;" Severity="Severity.Error" Elevation="2" Class="mt-2">
+            @errorMessage
+        </MudAlert>
+    }
+    @if (enteringName)
+    {
+        <h3>Login</h3>
+        if (!forgotUsername)
+        {
+            <MudPaper Class="pa-4">
+                <MudTextField @bind-Value="username" Label="Username" T="string" Immediate="true" Required="true" />
+                <MudButton OnClick="Next" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Next</MudButton>
+                <MudButton OnClick="ToggleForgotUsername" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Forgot Username</MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            if (!forgotPassword)
+            {
+                <MudFab OnClick="ToggleForgotUsername" Style="position: fixed; top: 80px; left: 273px; z-index: 999;" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />
+                <MudPaper Class="pa-4">
+                    <MudTextField @bind-Value="recoveryFirstName" Label="First Name" T="string" Immediate="true" Required="true" />
+                    <MudTextField @bind-Value="recoveryLastName" Label="Last Name" T="string" Immediate="true" Required="true" />
+                    <MudTextField @bind-Value="passwordRecoverUsername" T="string" Label="Enter your password"
+                    InputType="InputType.Password"
+                    Required="true"
+                    Immediate="true" />
+                    <MudButton OnClick="NextWithNames" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Recover Username</MudButton>
+                    <MudButton OnClick="ToggleForgotPasswordUsername" Variant="Variant.Text" Color="Color.Primary" Class="ml-auto">Forgot Password</MudButton>
+                    @if (message.Contains("Your username is"))
+                    {
+                        <p>@message</p>
+                    }
+                </MudPaper>
+            }
+            if (forgotPasswordAndUsername)
+            {
+                <MudPaper Class="pa-4">
+                    <p>Enter your full name and email address to receive a link to reset your password:</p>
+                    <MudTextField @bind-Value="firstName" Label="First Name" T="string" Immediate="true" Required="true" />
+                    <MudTextField @bind-Value="lastName" Label="Last Name" T="string" Immediate="true" Required="true" />
+                    <MudTextField @bind-Value="recoveryEmail" Label="Email" T="string" Immediate="true" Required="true" />
+                    <MudFab OnClick="forgotPasswordAndUsernameBack" Style="position: fixed; top: 80px; left: 273px; z-index: 999;" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />
+                    <MudButton OnClick="ResetPasswordFullName" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Send Link</MudButton>
+                    @if (resetLinkSent)
+                    {
+                        <h5>Check your email for a reset link...</h5>
+
+                        <br />
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                        <MudButton OnClick="BackToLogin" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Back To Login</MudButton>
+                        <h6>Didn't add a recovery email? Please go to the following link and submit a help request: </h6>
+                    }
+                </MudPaper>
+            }
+        }
+    }
+    else
+    {
+        <h3>Enter your password:</h3>
+        if (!forgotPassword)
+        {
+            <MudTextField @bind-Value="password" T="string" HelperText="Enter your password"
+            InputType="InputType.Password"
+            Required="true"
+            Immediate="true"/>
+            <MudButton OnClick="Signin" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Login</MudButton>
+            <MudButton OnClick="Back" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back</MudButton>
+            <MudButton OnClick="ToggleForgotPassword" Variant="Variant.Text" Color="Color.Primary" Class="ml-auto">Forgot Password</MudButton>
+        }
+        else
+        {
+            <MudPaper Class="pa-4">
+                <p>Enter your username and email address to reset your password:</p>
+                <MudTextField @bind-Value="username" HelperText="Username" T="string" Immediate="true" Required="true" />
+                <MudTextField @bind-Value="recoveryEmail" HelperText="Email" T="string" Immediate="true" Required="true" />
+                <MudButton OnClick="ToggleForgotPassword" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back</MudButton>
+                <MudButton OnClick="ResetPassword" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Reset Password</MudButton>
+                @if (resetLinkSent)
+                {
+                    <h5>Check your email for a reset link...</h5><br/>
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    <MudButton OnClick="BackToLogin" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Back To Login</MudButton>
+                    <h6>Didn't add a recovery email? Please go to the following link and submit a help request: </h6>
+                }
+            </MudPaper>
+        }
+    }
+
+    @if (message != null)
+    {
+        <p>@message</p>
+    }
+
+    @if (userservice.currentUser != null)
+    {
+        <h5>Welcome, @userservice.currentUser.Username</h5>
+    }
+</MudContainer>

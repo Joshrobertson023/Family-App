@@ -3,9 +3,15 @@ using DBAccessLibrary;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 
-namespace FamilyApp.Components.Pages;
-public partial class CreateAccount
+namespace VerseApp.Components.Pages;
+public partial class CreateAccount : ComponentBase
 {
+    [Inject]
+    NavigationManager nav { get; set; }
+    [Inject]
+    UserService userservice { get; set; }
+    [Inject]
+    VerseService verseservice { get; set; }
     private string? errorMessage;
     private bool loaded = false;
     private string? message;
@@ -20,8 +26,10 @@ public partial class CreateAccount
     private string email { get; set; }
     private bool help { get; set; } = false;
     private bool passwordHelp { get; set; } = false;
+    private bool isKidsAccount { get; set; } = false;
     private int retryCount { get; set; } = 0;
     Random rand = new Random();
+    private bool kidInfo { get; set; } = false;
 
     private void ToggleHelp()
     {
@@ -33,41 +41,27 @@ public partial class CreateAccount
         passwordHelp = !passwordHelp;
     }
 
+    private void ToggleKidInfo()
+    {
+        kidInfo = !kidInfo;
+    }
+
     private async Task PrivacyPolicy()
     {
         if (help) help = !help;
         if (passwordHelp) passwordHelp = !passwordHelp;
-        await JSRuntime.InvokeAsync<object>("open", "privacypolicy", "_blank");
+        //await JSRuntime.InvokeAsync<object>("open", "privacypolicy", "_blank");
     }
 
     private void GenerateUsername()
     {
         if (string.IsNullOrEmpty(username))
-            username = firstName + lastName + rand.Next(1000);
+            username = firstName + lastName + rand.Next(100);
     }
 
     private void ClearEmail()
     {
         email = "";
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            loaded = false;
-            try
-            {
-                //await userservice.GetAllUsernamesDBAsync();
-                loaded = true;
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                loaded = true;
-            }
-        }
     }
 
     private void Reload()
@@ -130,18 +124,18 @@ public partial class CreateAccount
             if (password != repeatPassword)
                 throw new Exception("Passwords do not match.");
 
+            if (password.Length < 12)
+                throw new Exception("Password is too short. Please use a password that is at least 12 characters long.");
+
             message = "";
             loading = true;
-            StateHasChanged();
-            userservice.user = new UserModel();
-            userservice.user.Username = username.Trim();
-            userservice.user.FirstName = firstName.Trim().ToLower();
-            userservice.user.LastName = lastName.Trim().ToLower();
-            if (email != null)
-                userservice.user.Email = email.Trim();
-            userservice.user.PasswordHash = PasswordHash.CreateHash(password.Trim());
 
-            await userservice.AddUserDBAsync(userservice.user);
+            int kidsAccount = isKidsAccount == true ? 1 : 0;
+            string? hashedEmail = "EMPTY";
+            if (!string.IsNullOrEmpty(email))
+                hashedEmail = PasswordHash.CreateHash(email.Trim());
+            string hashedPassword = PasswordHash.CreateHash(password.Trim());
+            await userservice.AddUserDBAsync(new UserModel(username, firstName, lastName, hashedEmail, hashedPassword, kidsAccount));
 
             loading = false;
             //SetCookies();

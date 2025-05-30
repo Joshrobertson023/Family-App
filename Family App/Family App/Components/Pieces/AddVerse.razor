@@ -1,6 +1,5 @@
-﻿@inject VerseService verseservice
-@inject UserService userservice
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
+@namespace VerseApp.Components.Pieces
 
 
 @if (loading)
@@ -27,7 +26,7 @@
     Label="Book"
     Variant="Variant.Outlined"
     Style="width: 200px">
-        @foreach (var b in books)
+        @foreach (var b in verseservice.books)
         {
             <MudSelectItem Value="@b.ToString()">@b</MudSelectItem>
         }
@@ -68,7 +67,7 @@
         Variant="Variant.Outlined"
         Label="Category"
         Style="width: 200px">
-            @foreach (var c in userservice.userCategories)
+            @foreach (var c in userservice.currentUserCategories)
             {
                 <MudSelectItem Value="c">@c</MudSelectItem>
             }
@@ -87,125 +86,4 @@
 </MudStack>
 
 @code {
-    private string _book;
-    private int _chapter;
-    private int _verse;
-
-    private string errorMessage { get; set; }
-    private string newCategory { get; set; }
-
-    private string book
-    {
-        get => _book;
-        set
-        {
-            if (_book != value)
-            {
-                _book = value;
-                OnBookChange();
-            }
-        }
-    }
-
-    private int chapter
-    {
-        get => _chapter;
-        set
-        {
-            if (_chapter != value)
-            {
-                _chapter = value;
-                OnChapterChange();
-            }
-        }
-    }
-
-    private int verse
-    {
-        get => _verse;
-        set => _verse = value;
-    }
-
-    private IEnumerable<int> verses { get; set; } = Array.Empty<int>();
-    private string category = "Uncategorized";
-    private int numChapters;
-    private int numVerses;
-    private bool showNewCategoryComponent = false;
-    private bool loading = false;
-    [Parameter]
-    public bool addingVerse { get; set; }
-    [Parameter]
-    public EventCallback<bool> AddingVerseChange { get; set; }
-    [Parameter]
-    public EventCallback OnVerseAdded { get; set; }
-
-    private void OnBookChange()
-    {
-        chapter = 0;
-        verses = Array.Empty<int>();
-
-        numChapters = verseservice.GetNumberChapters(book);
-        numVerses = 0;
-    }
-
-    private void OnChapterChange()
-    {
-        verses = Array.Empty<int>();
-
-        numVerses = verseservice.GetNumberVerses(book, chapter);
-    }
-
-    private async Task SubmitVerse()
-    {
-        try
-        {
-            List<int> submitVerses = verses.ToList();
-            submitVerses.Sort();
-            loading = true;
-            StateHasChanged();
-            await verseservice.AddNewUserVerseAsync(userservice.user.Id,
-                                                    ReferenceParse.ConvertToReferenceString(book, chapter, submitVerses),
-                                                    category);
-            await userservice.SetUserActiveDBAsync(userservice.user.Id);
-            addingVerse = false;
-            await OnVerseAdded.InvokeAsync();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-        finally
-        {
-            loading = false;
-        }
-    }
-
-    private void ToggleNewCategory()
-    {
-        showNewCategoryComponent = !showNewCategoryComponent;
-    }
-
-    private void SubmitCategory()
-    {
-        showNewCategoryComponent = !showNewCategoryComponent;
-        category = newCategory;
-    }
-
-    private readonly string[] books =
-    {
-        "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-        "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
-        "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
-        "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
-        "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
-        "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
-        "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
-        "Zephaniah", "Haggai", "Zechariah", "Malachi",
-        "Matthew", "Mark", "Luke", "John", "Acts",
-        "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
-        "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy",
-        "2 Timothy", "Titus", "Philemon", "Hebrews", "James",
-        "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
-        "Jude", "Revelation"
-    };
 }

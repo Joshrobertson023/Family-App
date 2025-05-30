@@ -31,6 +31,19 @@ namespace DBAccessLibrary.Models
         private int followVerseOfTheDay;
         private int visibility;
 
+        public UserModel(string username, string firstName, string lastName, string? email, string hashedPassword, int isKidsAccount)
+        {
+            Username = username.Trim();
+            FirstName = firstName.Trim();
+            LastName = lastName.Trim();
+            if (email != "EMPTY")
+                Email = email.Trim();
+            passwordHash = hashedPassword;
+            IsKidsAccount = isKidsAccount;
+        }
+
+        public UserModel() { }
+
         public int Id
         {
             get { return id; }
@@ -44,7 +57,7 @@ namespace DBAccessLibrary.Models
         }
         public string Username
         {
-            get { return "@" + username; }
+            get { return username; }
             set
             {
                 if (value.Length > UsernameMax)
@@ -53,7 +66,7 @@ namespace DBAccessLibrary.Models
                 username = value;
             }
         }
-        public int UsernameMax { get { return 18; } }
+        public static int UsernameMax { get { return 18; } }
         public string FirstName
         {
             get { return firstName; }
@@ -62,10 +75,10 @@ namespace DBAccessLibrary.Models
                 if (value.Length > NameMax)
                     throw new ArgumentException($"First name is too long. Please enter a name under {NameMax + 1} characters.");
 
-                firstName = value;
+                firstName = value.ToLower();
             }
         }
-        public int NameMax { get { return 15; } }
+        public static int NameMax { get { return 15; } }
         public string LastName
         {
             get { return lastName; }
@@ -74,7 +87,7 @@ namespace DBAccessLibrary.Models
                 if (value.Length > NameMax)
                     throw new ArgumentException($"Last name is too long. Please enter a name under {NameMax + 1} characters");
 
-                lastName = value;
+                lastName = value.ToLower();
             }
         }
         public string FullName
@@ -102,7 +115,7 @@ namespace DBAccessLibrary.Models
                 email = value;
             }
         }
-        public int EmailMax { get { return 50; } }
+        public static int EmailMax { get { return 128; } }
         public string PasswordHash
         {
             get { return passwordHash; }
@@ -114,7 +127,7 @@ namespace DBAccessLibrary.Models
                 passwordHash = value;
             }
         }
-        public int PasswordMax { get { return 128; } }
+        public static int PasswordMax { get { return 128; } }
         public DateTime DateRegistered
         {
             get { return dateRegistered; }
@@ -142,7 +155,7 @@ namespace DBAccessLibrary.Models
                 description = value;
             }
         }
-        public int DescriptionMax { get { return 50; } }
+        public static int DescriptionMax { get { return 50; } }
         public string? LastReadPassage
         {
             get
@@ -160,7 +173,7 @@ namespace DBAccessLibrary.Models
                 lastReadPassage = value;
             }
         }
-        public int LastReadPassageMax { get { return 10; } }
+        public static int LastReadPassageMax { get { return 10; } }
         public int? CurrentReadingPlan
         {
             get
@@ -234,7 +247,7 @@ namespace DBAccessLibrary.Models
                 reasonDeleted = value;
             }
         }
-        public int ReasonDeletedMax { get { return 100; } }
+        public static int ReasonDeletedMax { get { return 100; } }
         public int AppTheme
         {
             get { return appTheme; }
@@ -290,7 +303,7 @@ namespace DBAccessLibrary.Models
                 allowPushNotifications = value;
             }
         }
-        public int PushNotificationTypes { get { return 2; } }
+        public static int PushNotificationTypes { get { return 2; } }
         public int FollowVerseOfTheDay
         {
             get { return followVerseOfTheDay; }
@@ -313,6 +326,7 @@ namespace DBAccessLibrary.Models
                 visibility = value;
             }
         }
-        public int VisibilityTypes { get { return 3; } }
+        public static int VisibilityTypes { get { return 3; } }
+        public bool ForgotUsername { get; set; } // Ask users to change their username if this is true when logging in
     }
 }

@@ -1,8 +1,6 @@
 ﻿@page "/myverses"
-@inject UserService userservice
-@inject VerseService verseservice
-@inject NavigationManager nav
 @rendermode InteractiveServer
+@namespace VerseApp.Components.Pages
 
 @if (loading)
 {
@@ -13,7 +11,7 @@
 	<h3>My Verses</h3>
 
 	<MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
-		@if (userservice.user != null)
+		@if (userservice.currentUser != null)
 		{
 			if (!addingVerse)
 			{
@@ -23,7 +21,7 @@
 			{
 				<Family_App.Components.Pieces.AddVerse AddingVerse="@addingVerse" OnVerseAdded="RefreshVerses"></Family_App.Components.Pieces.AddVerse>
 			}
-			@foreach (var category in userservice.userCategories)
+			@foreach (var category in userservice.currentUserCategories)
 			{
 				<MudPaper Elevation="2" Class="pa-4">
 					<MudStack Spacing="2">
@@ -57,29 +55,3 @@
 
 
 </MudContainer>
-
-@code {
-	public bool addingVerse { get; set; }
-	private bool loading { get; set; }
-
-	List<Verse> versesInCategory = new List<Verse>();
-
-	private void CategorizeVerses()
-	{
-
-	}
-
-	private void AddVerses()
-	{
-		addingVerse = true;
-	}
-
-	private async Task RefreshVerses()
-	{
-		addingVerse = false;
-		loading = true;
-		await verseservice.GetUserVersesDBAsync(userservice.user.Id);
-		await userservice.GetUserCategoriesDBAsync(userservice.user.Id);
-		loading = false;
-	}
-}

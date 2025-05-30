@@ -1,7 +1,6 @@
 ﻿@page "/profile"
-@inject UserService userservice
-@inject NavigationManager nav
 @rendermode InteractiveServer
+@namespace VerseApp.Components.Pages
 
 <MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
 	<h3>Profile</h3>
@@ -33,10 +32,15 @@
     }
     else
     {
-		@if (userservice.user != null)
+		@if (userservice.currentUser != null)
 		{
-			<h4 style="margin-bottom: 0;">@userservice.user.FullName</h4>
-            <h6 style="margin-top: -10px;">@("@" + userservice.user.Username)</h6>
+            <MudStack Row>
+                <MudAvatar Color="Color.Primary">@(userservice.currentUser.FullName.Substring(0,1))</MudAvatar>
+                <MudStack>
+			        <h4 style="margin-bottom: 0;">@userservice.currentUser.FullName</h4>
+                    <h6 style="margin-top: -10px;">@(userservice.currentUser.Username)</h6>
+                </MudStack>
+            </MudStack>
 			<h6>Verses memorized: 0</h6>
 			<h6>Friends: @userservice.usernames.Count()</h6>
 			<MudButton onclick="FriendsList" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Your Friends</MudButton>
@@ -50,49 +54,3 @@
 		}
 	}
 </MudStack>
-
-@code {
-    private string? errorMessage;
-    private bool loaded = false;
-    private string? message;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            loaded = false;
-            try
-            {
-                //await userservice.GetAllUsernamesDBAsync();
-                loaded = true;
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                loaded = true;
-            }
-        }
-    }
-
-    private void Reload()
-    {
-        nav.NavigateTo("/profile", forceLoad: true);
-    }
-
-	private void FriendsList()
-	{
-		nav.NavigateTo("/friendslist");
-	}
-
-	private void Login()
-	{
-		nav.NavigateTo("/login", forceLoad: true);
-	}
-
-	private void Logout()
-	{
-		userservice.user = null;
-		nav.NavigateTo("/profile", forceLoad: true);
-	}
-}

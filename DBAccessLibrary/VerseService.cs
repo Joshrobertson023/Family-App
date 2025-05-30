@@ -20,140 +20,31 @@ namespace DBAccessLibrary
         public Verse verse;
         public List<Verse> userVerses = new List<Verse>();
         public List<Verse> otherUserVerses = new List<Verse>();
-        //public Dictionary<Verse, string> userVerses = new Dictionary<Verse, string>(); // Verse, category
-        //public Dictionary<Verse, string> otherUserVerses = new Dictionary<Verse, string>(); // Verse, category
 
+        public string[] books { get; } =
+        {
+            "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+            "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
+            "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
+            "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
+            "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
+            "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
+            "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
+            "Zephaniah", "Haggai", "Zechariah", "Malachi",
+            "Matthew", "Mark", "Luke", "John", "Acts",
+            "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
+            "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy",
+            "2 Timothy", "Titus", "Philemon", "Hebrews", "James",
+            "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
+            "Jude", "Revelation"
+        };
+
+        private IConfiguration _config;
         public VerseService(IConfiguration config)
         {
             _config = config;
             connectionString = _config.GetConnectionString("Default");
         }
-
-        private IConfiguration _config;
-
-
-        /*
-         *      ------------------------ Bible-API Method ------------------------
-         */
-
-        public async Task<Verse> GetAPIVerseAsync(string reference, string translation)
-        {
-            Verse returnVerse = new Verse();
-
-            string baseUrl = "https://bible-api.com/";
-            string url = $"{baseUrl}{reference}?translation={translation}";
-
-            using HttpClient httpClient = new();
-
-            HttpResponseMessage response = await httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-                throw new Exception($"Critical error getting data from Bible API.");
-
-            string json = await response.Content.ReadAsStringAsync();
-
-            Root root = JsonSerializer.Deserialize<Root>(json);
-            returnVerse.Reference = root.Reference;
-            foreach (var verse in root.Verses)
-            {
-                JsonVerse jsonVerse = new JsonVerse();
-                returnVerse.Text += verse.Text;
-                returnVerse.Translation = verse.Translation;
-            }
-
-            return returnVerse;
-        }
-
-
-        /*
-         *      ------------------------ Methods to get number of chapters and verses ------------------------
-         */
-
-        public int GetNumberChapters(string book)
-        {
-            int numChapters = 0;
-
-            Dictionary<string, Dictionary<string, int>> numChaptersVerses;
-
-            using (StreamReader reader = new StreamReader(Path.Combine(AppContext.BaseDirectory, "kjv_book_chapter_verse_counts.json")))
-            {
-                string json = reader.ReadToEnd();
-                numChaptersVerses = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, int>>>(json);
-            }
-
-            if (numChaptersVerses.ContainsKey(book))
-            {
-                numChapters = numChaptersVerses[book].Count;
-            }
-
-            return numChapters;
-        }
-
-        public int GetNumberVerses(string book, int chapter)
-        {
-            int numVerses = 0;
-
-            Dictionary<string, Dictionary<string, int>> numChaptersVerses;
-
-            using (StreamReader reader = new StreamReader(Path.Combine(AppContext.BaseDirectory, "kjv_book_chapter_verse_counts.json")))
-            {
-                string json = reader.ReadToEnd();
-                numChaptersVerses = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, int>>>(json);
-            }
-
-            if (numChaptersVerses.ContainsKey(book))
-            {
-                if (numChaptersVerses[book].ContainsKey(chapter.ToString()))
-                {
-                    numVerses = numChaptersVerses[book][chapter.ToString()];
-                }
-            }
-
-            return numVerses;
-        }
-
-        #region Json Classes
-        public class Root
-        {
-            [JsonPropertyName("reference")]
-            public string Reference { get; set; }
-
-            [JsonPropertyName("verses")]
-            public List<JsonVerse> Verses { get; set; }
-        }
-
-        public class JsonVerse
-        {
-            [JsonPropertyName("book_id")]
-            public string BookId { get; set; }
-
-            [JsonPropertyName("book_name")]
-            public string BookName { get; set; }
-
-            [JsonPropertyName("chapter")]
-            public int Chapter { get; set; }
-
-            [JsonPropertyName("verse")]
-            public int VerseNumber { get; set; }
-
-            [JsonPropertyName("text")]
-            public string Text { get; set; }
-
-            [JsonPropertyName("translation_id")]
-            public string Translation { get; set; }
-
-            [JsonPropertyName("translation_name")]
-            public string TranslationName { get; set; }
-
-            [JsonPropertyName("translation_note")]
-            public string TranslationNote { get; set; }
-        }
-        #endregion
-
-
-        /*
-         *      ------------------------ Add a New Verse to the User ------------------------
-         */
 
         public async Task AddNewUserVerseAsync(int userId,
             string reference,
@@ -183,7 +74,6 @@ namespace DBAccessLibrary
 
         public async Task GetUserVersesDBAsync(int userId)
         {
-            //userVerses = new Dictionary<Verse, string>();
             userVerses = new List<Verse>();
 
             string query = @"SELECT * FROM userverses 
@@ -230,7 +120,7 @@ namespace DBAccessLibrary
                     }
                     verse.Reference = reader.GetString(reader.GetOrdinal("REFERENCE"));
                     verse.Translation = reader.GetString(reader.GetOrdinal("TRANSLATION"));
-                    Verse returnedVerse = await GetAPIVerseAsync(verse.Reference, verse.Translation);
+                    Verse returnedVerse = await BibleAPI.GetAPIVerseAsync(verse.Reference, verse.Translation);
                     verse.Text = returnedVerse.Text;
 
                     userVerses.Add(verse);
@@ -296,7 +186,7 @@ namespace DBAccessLibrary
                     }
                     verse.Reference = reader.GetString(reader.GetOrdinal("REFERENCE"));
                     verse.Translation = reader.GetString(reader.GetOrdinal("TRANSLATION"));
-                    Verse returnedVerse = await GetAPIVerseAsync(verse.Reference, verse.Translation);
+                    Verse returnedVerse = await BibleAPI.GetAPIVerseAsync(verse.Reference, verse.Translation);
                     verse.Text = returnedVerse.Text;
 
                     otherUserVerses.Add(verse);

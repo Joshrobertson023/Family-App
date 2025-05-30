@@ -9,13 +9,6 @@
     <MudGrid>
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-                @if (userservice.users != null)
-                {
-                    @foreach (var user in userservice.users)
-                    {
-                        <h6>@user.Username</h6>
-                    }
-                }
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="6" md="4">
@@ -51,8 +44,3 @@
         </MudGrid>
     </MudContainer>
 }
-
-
-@code {
-}
-

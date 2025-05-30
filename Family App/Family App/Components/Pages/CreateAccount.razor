@@ -1,10 +1,7 @@
 ﻿@page "/createaccount"
-@inject UserService userservice
-@inject VerseService verseservice
-@inject NavigationManager nav
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
-@namespace FamilyApp.Components.Pages
+@namespace VerseApp.Components.Pages
 
 @if (loading)
 {
@@ -17,12 +14,9 @@
     {
         <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
             <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
-                <MudPaper Class="pa-4">
                     <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-                        Error loading data from the database.<br /><br />
                         @errorMessage
                     </MudAlert>
-                </MudPaper>
             </MudContainer>
         </MudStack>
     }
@@ -30,27 +24,41 @@
     {
         <h3>Create Account</h3>
         <MudPaper Class="pa-4">
-            <MudTextField @bind-Value="firstName" MaxLength="30" Label="First Name" T="string" Immediate="true" Required="true" />
-            <MudTextField @bind-Value="lastName" MaxLength="30" Label="Last Name" T="string" Immediate="true" Required="true" />
+            <MudTextField @bind-Value="firstName" MaxLength="@UserModel.NameMax" Label="First Name" T="string" Immediate="true" Required="true" />
+            <MudTextField @bind-Value="lastName" MaxLength="@UserModel.NameMax" Label="Last Name" T="string" Immediate="true" Required="true" />
             <MudTextField @onfocus="GenerateUsername" @bind-Value="username" MaxLength="40" Label="Username" T="string" Immediate="true" Required="true" />
             @if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
             {
                 <MudStack Row>
-                    <MudTextField @bind-Value="email" MaxLength="30" Label="Optional: Email Address" T="string" Immediate="true" Required="false" />
+                    <MudTextField @bind-Value="email" MaxLength="50" Label="Optional: Email Address" T="string" Immediate="true" Required="false" />
                     <MudButton OnClick="ClearEmail" Variant="Variant.Text" Class="ml-auto mr-n3 mb-1">Clear</MudButton>
                 </MudStack>
                 <MudStack Row>
-                    <p>Enter an email address to help protect your account</p>
+                    <p>Enter an email address to help recover your account. Only you can see your email.</p>
                     <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@ToggleHelp">
                         <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Title="More Info" />
                     </MudButton>
                 </MudStack>
+                <MudCheckBox @bind-Value="isKidsAccount" Color="Color.Primary"></MudCheckBox>
+                <p>This account is for a child.</p>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@ToggleKidInfo">
+                    <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Title="More Info" />
+                </MudButton>
 
                 <MudPopover Open="@help" Fixed="true" Style="width:250px" Class="px-4 pt-4">
                     <div class="d-flex flex-column">
-                        <MudText>Adding an email address can help you recover your account in case you forget your password.</MudText>
+                        <MudText>Adding an email address can help you recover your account in case you forget your password.<br/>
+                            Emails and passwords are hashed to protect your privacy.</MudText>
                         <MudButton OnClick="ToggleHelp" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
                         <MudButton OnClick="PrivacyPolicy" Variant="Variant.Text" Class="ml-auto mr-n3 mb-1">Privacy Policy</MudButton>
+                    </div>
+                </MudPopover>
+                <MudPopover Open="@kidInfo" Fixed="true" Style="width:250px" Class="px-4 pt-4">
+                    <div class="d-flex flex-column">
+                        <MudText>
+                            Making this a child account will disable online features and interaction with other users.
+                        </MudText>
+                        <MudButton OnClick="ToggleKidInfo" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
                     </div>
                 </MudPopover>
             }
@@ -60,13 +68,13 @@
     else
     {
         <h3>Create a password:</h3>
-        <MudTextField @bind-Value="password" MaxLength="40" T="string" Label="Enter your password"
+        <MudTextField @bind-Value="password" MaxLength="20" T="string" Label="Enter your password"
         InputType="InputType.Password"
         Required="true"
         Immediate="true" />
         <MudTextField T="string"
         Immediate="true"
-        @bind-Value="repeatPassword" MaxLength="40" Label="Re-enter your password" InputType="InputType.Password" />
+        @bind-Value="repeatPassword" MaxLength="20" Label="Re-enter your password" InputType="InputType.Password" />
         @if (!string.IsNullOrEmpty(message))
         {
             <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
@@ -74,10 +82,10 @@
             </MudAlert>
         }
         <MudButton OnClick="Register" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
-        <MudButton OnClick="Back" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Back</MudButton>
+        <MudFab OnClick="Back" Style="position: fixed; top: 80px; left: 273px; z-index: 999;" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />
 
         <p>
-            Password is visible only to you.
+            Only you can see your password.
         </p>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@TogglePasswordHelp">
             <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Title="More Info" />
@@ -85,15 +93,11 @@
 
         <MudPopover Open="@passwordHelp" Fixed="true" Class="px-4 pt-4">
             <div class="d-flex flex-column">
-                <MudText>Passwords are hashed to protect privacy. Only you can see your password.</MudText>
+                <MudText>Emails and passwords are hashed to protect your privacy.</MudText>
                 <MudButton OnClick="@TogglePasswordHelp" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
                 <MudButton OnClick="PrivacyPolicy" Variant="Variant.Text" Class="ml-auto mr-n3 mb-1">Privacy Policy</MudButton>
             </div>
         </MudPopover>
-    }
 
-    @if (userservice.user != null)
-    {
-        <h5>Welcome, @userservice.user.Username</h5>
     }
 </MudStack>
