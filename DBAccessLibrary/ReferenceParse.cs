@@ -56,6 +56,17 @@ namespace DBAccessLibrary
             return returnString;
         }
 
+        public static string ConvertToReferenceString(string book, int chapter, int verse)
+        {
+            string returnString = "";
+
+            returnString += book + " " + chapter.ToString() + ":";
+
+            returnString += verse.ToString();
+
+            return returnString;
+        }
+
         public static string ConvertToReadableReference(string book, int chapter, List<int> verses)
         {
             string returnString = "";

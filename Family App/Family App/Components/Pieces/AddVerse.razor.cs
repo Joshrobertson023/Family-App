@@ -18,7 +18,9 @@ namespace VerseApp.Components.Pieces
 
         private string errorMessage { get; set; }
         private string newCategory { get; set; }
-        public Verse previewVerse;
+        private string message { get; set; } = "";
+        private string readableReference { get; set; }
+        public List<VerseModel> previewVerses;
 
         private string book
         {
@@ -53,12 +55,17 @@ namespace VerseApp.Components.Pieces
         }
 
         private IEnumerable<int> verses;
+
         private IEnumerable<int> Verses { get { return verses; } set { verses = value; VersesChanged(); } }
+
+        private List<VerseModel> displayVerses { get; set; }
+
         private string category = "Uncategorized";
         private int numChapters;
         private int numVerses;
         private bool showNewCategoryComponent = false;
         private bool loading = false;
+        private bool loadingVerses = true;
         [Parameter]
         public bool addingVerse { get; set; }
         [Parameter]
@@ -73,6 +80,7 @@ namespace VerseApp.Components.Pieces
 
             numChapters = BibleStructure.GetNumberChapters(book);
             numVerses = 0;
+            errorMessage = "";
         }
 
         private void OnChapterChange()
@@ -80,12 +88,14 @@ namespace VerseApp.Components.Pieces
             Verses = Array.Empty<int>();
 
             numVerses = BibleStructure.GetNumberVerses(book, chapter);
+            errorMessage = "";
         }
 
         private async Task SubmitVerse()
         {
             try
             {
+                errorMessage = "";
                 List<int> submitVerses = Verses.ToList();
                 submitVerses.Sort();
                 loading = true;
@@ -109,27 +119,48 @@ namespace VerseApp.Components.Pieces
         private void ToggleNewCategory()
         {
             showNewCategoryComponent = !showNewCategoryComponent;
+            errorMessage = "";
         }
 
         private void SubmitCategory()
         {
             showNewCategoryComponent = !showNewCategoryComponent;
             category = newCategory;
+            errorMessage = "";
         }
 
         private async Task VersesChanged()
         {
-            if (Verses == Array.Empty<int>())
+            message = "";
+            List<int> verses = Verses.ToList<int>();
+            if (verses == null || verses.Count <= 0)
                 return;
+            if (verses.Count >= 10)
+            {
+                // Show a ... after last 8 verses
+                // Or just optimize this somehow
+                return;
+            }
+
+            displayVerses = new List<VerseModel>();
+            loadingVerses = true;
+            errorMessage = "";
 
             try
             {
-                previewVerse = await BibleAPI.GetAPIVerseAsync(ReferenceParse.ConvertToReferenceString(book, chapter, Verses.ToList()), "kjv");
+                //readableReference = ReferenceParse.ConvertToReferenceString(book, chapter, verses); // = ReferenceParse.ConvertToReadableReference(book, chapter, verses);
+                foreach (var _verse in Verses)
+                {
+                    displayVerses.Add(await BibleAPI.GetAPIVerseAsync(ReferenceParse.ConvertToReferenceString(book, chapter, _verse), "kjv"));
+                }
+                displayVerses.Sort();
+                loadingVerses = false;
                 StateHasChanged();
             }
             catch (Exception ex)
             {
-                errorMessage = ex.Message;
+                if (!ex.Message.Contains("enumeration operation"))
+                    errorMessage = ex.Message;
             }
         }
     }

@@ -123,7 +123,7 @@ namespace DBAccessLibrary
                     verse.Reference = reader.GetString(reader.GetOrdinal("REFERENCE"));
                     verse.Translation = reader.GetString(reader.GetOrdinal("TRANSLATION"));
                     verse.Visibility = reader.GetInt32(reader.GetOrdinal("VISIBILITY"));
-                    Verse returnedVerse = await BibleAPI.GetAPIVerseAsync(verse.Reference, verse.Translation);
+                    VerseModel returnedVerse = await BibleAPI.GetAPIVerseAsync(verse.Reference, verse.Translation);
                     verse.Text = returnedVerse.Text;
 
                     userVerses.Add(verse);
@@ -190,7 +190,7 @@ namespace DBAccessLibrary
                     verse.Reference = reader.GetString(reader.GetOrdinal("REFERENCE"));
                     verse.Translation = reader.GetString(reader.GetOrdinal("TRANSLATION"));
                     verse.Visibility = reader.GetInt32(reader.GetOrdinal("VISIBILITY"));
-                    Verse returnedVerse = await BibleAPI.GetAPIVerseAsync(verse.Reference, verse.Translation);
+                    VerseModel returnedVerse = await BibleAPI.GetAPIVerseAsync(verse.Reference, verse.Translation);
                     verse.Text = returnedVerse.Text;
 
                     otherUserVerses.Add(verse);
@@ -263,7 +263,8 @@ namespace DBAccessLibrary
 
             List<int> verses = new List<int>();
             
-            foreach (int verse in )
+            //foreach (int verse in )
+            // Increment usersSaved for the verse
 
             conn.Close();
             conn.Dispose();

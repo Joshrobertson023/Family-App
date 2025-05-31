@@ -12,9 +12,9 @@ namespace DBAccessLibrary
 {
     public static class BibleAPI
     {
-        public static async Task<Verse> GetAPIVerseAsync(string reference, string translation)
+        public static async Task<VerseModel> GetAPIVerseAsync(string reference, string translation)
         {
-            Verse returnVerse = new Verse();
+            VerseModel returnVerse = new VerseModel();
 
             string baseUrl = "https://bible-api.com/";
             string url = $"{baseUrl}{reference}?translation={translation}";
@@ -34,7 +34,6 @@ namespace DBAccessLibrary
             {
                 JsonVerse jsonVerse = new JsonVerse();
                 returnVerse.Text += verse.Text;
-                returnVerse.Translation = verse.Translation;
             }
 
             return returnVerse;

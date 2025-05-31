@@ -15,6 +15,13 @@ namespace DBAccessLibrary.Models
         public int UsersHighlighted { get; set; }
         private VerseService _verseservice;
 
+        public VerseModel(string reference, VerseService verseservice)
+        {
+            Reference = reference;
+            GetInfo();
+            _verseservice = verseservice;
+        }
+
         public VerseModel(string reference, string text, VerseService verseservice)
         {
             Reference = reference;

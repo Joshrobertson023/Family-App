@@ -1,7 +1,6 @@
 ﻿@rendermode InteractiveServer
 @namespace VerseApp.Components.Pieces
 
-
 @if (loading)
 {
     <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
@@ -25,6 +24,7 @@
                 <MudSelectItem Value="@b.ToString()">@b</MudSelectItem>
             }
         </MudSelect>
+
         @if (!string.IsNullOrEmpty(book))
         {
             <MudSelect @bind-Value="chapter"
@@ -36,9 +36,9 @@
                     var localI = i;
                     <MudSelectItem Value="@localI">@localI</MudSelectItem>
                 }
-
             </MudSelect>
         }
+
         @if (chapter > 0)
         {
             <MudSelect T="int"
@@ -52,9 +52,9 @@
                     var _i = i;
                     <MudSelectItem T="int" Value="@_i">@_i</MudSelectItem>
                 }
-
             </MudSelect>
         }
+
         @if (Verses != null)
         {
             @if (Verses.Any())
@@ -65,42 +65,63 @@
                 Style="width: 200px">
                     @foreach (var c in userservice.currentUserCategories)
                     {
-                        <MudSelectItem Value="c">@c</MudSelectItem>
+                        <MudSelectItem Value="@c">@c</MudSelectItem>
                     }
                 </MudSelect>
-                if (!showNewCategoryComponent)
+
+                @if (!showNewCategoryComponent)
                 {
-                    <MudButton OnClick="ToggleNewCategory" Variant="Variant.Text" Size="Size.Small" Color="Color.Primary" Class="ml-auto">New Category</MudButton>
+                    <MudButton OnClick="ToggleNewCategory"
+                    Variant="Variant.Text"
+                    Size="Size.Small"
+                    Color="Color.Primary"
+                    Class="ml-auto">
+                        New Category
+                    </MudButton>
                 }
                 else
                 {
-                    <NewCategory NewCategory="@newCategory" OnCategoryChange="SubmitCategory"></NewCategory>
+                    <NewCategory NewCategory="@newCategory"
+                    OnCategoryChange="SubmitCategory">
+                    </NewCategory>
                 }
 
-                <MudButton OnClick="SubmitVerse" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verse</MudButton>
+                <MudButton OnClick="SubmitVerse"
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                Class="ml-auto">
+                    Add Verses
+                </MudButton>
             }
         }
     </MudStack>
+
     @if (Verses != null)
     {
         if (Verses.Any())
         {
-            if (previewVerse != null)
+            if (!loadingVerses)
             {
-                foreach (var verse in _Verses)
-                {
-                    <Verse_App.Components.Pieces.DisplayVerse Verse="verse"></Verse_App.Components.Pieces.DisplayVerse>
-                }
-                if (loadingVerse)
-                }
-                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="400px" Height="0px" />
-                }
+                <MudPaper Class="pa-4" MaxWidth="700px">
+                    @* <p>@readableReference</p> *@
+                    @foreach (var verse in displayVerses)
+                    {
+                        <p style="margin-bottom: -0px;">@verse.Text</p>
+                        <p>@($"Saved by {verse.UsersSaved} people.")</p>
+                    }
+                </MudPaper>
+            }
             else
             {
                 <MudSkeleton Width="400px" />
-                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="400px" Height="0px" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="400px" Height="40px" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="400px" Height="40px" />
             }
         }
+    }
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p>@message</p>
     }
 </MudStack>
 
