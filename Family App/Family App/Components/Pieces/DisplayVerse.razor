@@ -1,0 +1,17 @@
+﻿<p style="margin-bottom: -10px;">@Verse.Reference</p>
+<p style="margin-bottom: -10px;">@Verse.Text</p>
+<p>@displayString</p>
+
+@code {
+	[Parameter]
+	public VerseModel Verse { get; set; }
+	public string displayString { get; set; } = "";
+
+	protected override async Task OnInitializedAsync()
+	{
+		Verse = new VerseModel();
+
+		if (Verse.UsersSaved > 0)
+			displayString += "Saved " + Verse.UsersSaved + " people.";
+	}
+}

@@ -13,6 +13,7 @@ namespace DBAccessLibrary.Models
         private string lastName;
         private string? email;
         private string passwordHash;
+        public int Id { get; set; }
         public string Username
         {
             get { return username; }

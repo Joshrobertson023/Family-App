@@ -14,9 +14,9 @@
     {
         <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
             <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
-                    <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-                        @errorMessage
-                    </MudAlert>
+                <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
+                    @errorMessage
+                </MudAlert>
             </MudContainer>
         </MudStack>
     }
@@ -39,11 +39,6 @@
                         <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Title="More Info" />
                     </MudButton>
                 </MudStack>
-                <MudCheckBox @bind-Value="isKidsAccount" Color="Color.Primary"></MudCheckBox>
-                <p>This account is for a child.</p>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@ToggleKidInfo">
-                    <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Title="More Info" />
-                </MudButton>
 
                 <MudPopover Open="@help" Fixed="true" Style="width:250px" Class="px-4 pt-4">
                     <div class="d-flex flex-column">
@@ -53,17 +48,13 @@
                         <MudButton OnClick="PrivacyPolicy" Variant="Variant.Text" Class="ml-auto mr-n3 mb-1">Privacy Policy</MudButton>
                     </div>
                 </MudPopover>
-                <MudPopover Open="@kidInfo" Fixed="true" Style="width:250px" Class="px-4 pt-4">
-                    <div class="d-flex flex-column">
-                        <MudText>
-                            Making this a child account will disable online features and interaction with other users.
-                        </MudText>
-                        <MudButton OnClick="ToggleKidInfo" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
-                    </div>
-                </MudPopover>
             }
             <MudButton OnClick="Next" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Next</MudButton>
         </MudPaper>
+        if (!string.IsNullOrEmpty(message))
+        {
+            <p>@message</p>
+        }
     }
     else
     {

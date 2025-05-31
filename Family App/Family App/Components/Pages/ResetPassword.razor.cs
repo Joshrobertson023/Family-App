@@ -6,9 +6,25 @@ namespace VerseApp.Components.Pages
 {
     public partial class ResetPassword : ComponentBase
     {
+        [Parameter]
+        [SupplyParameterFromQuery(Name = "token")]
+        public string Token { get; set; }
+        [Parameter]
+        [SupplyParameterFromQuery(Name = "userid")]
+        public string UserId { get; set; }
+        private string? errorMessage;
+        private bool loaded = false;
+        private string? message;
+        private bool validToken;
+        private bool loading { get; set; }
         private string password { get; set; }
         private string repeatPassword { get; set; }
         private bool passwordIsReset { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            validToken = await userservice.VerifyTokenDBAsync(Convert.ToInt32(UserId), Token);
+        }
 
         public async Task SubmitNewPassword()
         {
@@ -27,7 +43,7 @@ namespace VerseApp.Components.Pages
                 loading = true;
 
                 string hashedPassword = PasswordHash.CreateHash(password.Trim());
-                await userservice.UpdateUserPasswordDBAsync(userservice.currentUser.Id, hashedPassword);
+                await userservice.UpdateUserPasswordDBAsync(Convert.ToInt32(UserId), hashedPassword);
 
                 loading = false;
                 userservice.currentUser = null;

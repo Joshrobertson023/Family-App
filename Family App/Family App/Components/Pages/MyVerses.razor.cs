@@ -22,9 +22,9 @@ namespace VerseApp.Components.Pages
 
         }
 
-        private void AddVerses()
+        private void ToggleAddVerses()
         {
-            addingVerse = true;
+            addingVerse = !addingVerse;
         }
 
         private async Task RefreshVerses()

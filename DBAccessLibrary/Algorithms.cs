@@ -14,14 +14,22 @@ namespace DBAccessLibrary
 {
     public static class Algorithms
     {
-        public static List<string> QuickSortUsernames(List<string> usernames)
+        public static List<T> SortByName<T>(List<T> userInfo)
         {
-            return usernames;
-        }
-        
-        public static List<RecoveryInfo> SortRecoveryInfoByName(List<RecoveryInfo> _recoveryInfo)
-        {
-            return _recoveryInfo;
+            if (typeof(T) == typeof(List<string>))
+            {
+                List<T> sortedUserInfo = new List<T>();
+                return sortedUserInfo;
+            }
+            else if (typeof(T) == typeof(List<RecoveryInfo>))
+            {
+                List<T> sortedUserInfo = new List<T>();
+                return sortedUserInfo;
+            }
+            else
+            {
+                throw new NotImplementedException("The type you are trying to sort has not been implemented.");
+            }
         }
     }
 }

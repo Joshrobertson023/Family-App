@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DBAccessLibrary.Models;
 
 namespace DBAccessLibrary
 {
@@ -53,6 +54,55 @@ namespace DBAccessLibrary
             }
 
             return returnString;
+        }
+
+        public static string ConvertToReadableReference(string book, int chapter, List<int> verses)
+        {
+            string returnString = "";
+            verses.Sort();
+            List<int> consecutiveVerses = new List<int>();
+
+            returnString += book + " " + chapter.ToString() + ":";
+
+            if (verses.Count > 1)
+            {
+                for (int i = 0; i < verses.Count-1; i++)
+                {
+                    if (verses[i] == verses[i + 1])
+                    {
+                        if (!consecutiveVerses.Contains(verses[i]))
+                            consecutiveVerses.Add(verses[i]);
+                        consecutiveVerses.Add(verses[i + 1]);
+                        i++;
+                    }
+                    else
+                    {
+                        returnString += verses[i].ToString();
+                        if (i < verses.Count - 1)
+                            returnString += ", ";
+                    }
+
+                }
+            }
+            else
+            {
+                returnString += verses[0].ToString();
+            }
+
+            return returnString;
+        }
+
+        public static List<int> GetIndividualVerses(string reference)
+        {
+            List<int> returnList = new List<int>();
+            string verses = ConvertToReferenceParts(reference)[2];
+
+            if (verses.Length > 1)
+                for (int i = 0; i < verses.Length-1; i += 2)
+                    returnList.Add(Convert.ToInt32(verses[i]));
+            returnList.Add(Convert.ToInt32(verses[verses.Length - 1]));
+
+            return returnList;
         }
     }
 }

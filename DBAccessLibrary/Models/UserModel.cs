@@ -14,13 +14,13 @@ namespace DBAccessLibrary.Models
         private string lastName;
         private string? email;
         private string passwordHash;
+        private string status;
         private DateTime dateRegistered;
         private DateTime lastSeen;
         private string? description;
         private string? lastReadPassage;
         private int? currentReadingPlan;
         private int? lastPracticedVerse;
-        private int isKidsAccount;
         private int isDeleted;
         private string? reasonDeleted;
         private int appTheme;
@@ -31,15 +31,15 @@ namespace DBAccessLibrary.Models
         private int followVerseOfTheDay;
         private int visibility;
 
-        public UserModel(string username, string firstName, string lastName, string? email, string hashedPassword, int isKidsAccount)
+        public UserModel(string username, string firstName, string lastName, string? email, string hashedPassword, string status = "DEFAULT")
         {
             Username = username.Trim();
             FirstName = firstName.Trim();
             LastName = lastName.Trim();
             if (email != "EMPTY")
                 Email = email.Trim();
-            passwordHash = hashedPassword;
-            IsKidsAccount = isKidsAccount;
+            PasswordHash = hashedPassword;
+            Status = status;
         }
 
         public UserModel() { }
@@ -100,13 +100,7 @@ namespace DBAccessLibrary.Models
         }
         public string? Email
         { 
-            get
-            {
-                if (string.IsNullOrEmpty(email))
-                    throw new NullReferenceException("Error getting Email: email is null or empty.");
-                else
-                    return email;
-            }
+            get { return email; }
             set
             {
                 if (value.Length > EmailMax)
@@ -128,6 +122,18 @@ namespace DBAccessLibrary.Models
             }
         }
         public static int PasswordMax { get { return 128; } }
+        public string Status
+        {
+            get { return status; }
+            set
+            {
+                if (value.Length > StatusMax)
+                    throw new ArgumentException($"Critical error setting Status: value is too long.");
+
+                status = value;
+            }
+        }
+        public static int StatusMax { get { return 30; } }
         public DateTime DateRegistered
         {
             get { return dateRegistered; }
@@ -206,17 +212,6 @@ namespace DBAccessLibrary.Models
                     throw new ArgumentException("Critical error setting lastPracticedVerse: Value was outside the allowed range.");
 
                 lastPracticedVerse = value;
-            }
-        }
-        public int IsKidsAccount
-        {
-            get { return isKidsAccount; }
-            set
-            {
-                if (value < 0 || value > 1)
-                    throw new ArgumentException("Critical error setting isKidsAccount: value was outside the allowed range.");
-
-                isKidsAccount = value;
             }
         }
         public int IsDeleted

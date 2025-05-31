@@ -1,4 +1,5 @@
 ﻿using DBAccessLibrary;
+using DBAccessLibrary.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace VerseApp.Components.Pieces
@@ -17,6 +18,7 @@ namespace VerseApp.Components.Pieces
 
         private string errorMessage { get; set; }
         private string newCategory { get; set; }
+        public Verse previewVerse;
 
         private string book
         {
@@ -50,7 +52,8 @@ namespace VerseApp.Components.Pieces
             set => _verse = value;
         }
 
-        private IEnumerable<int> verses { get; set; } = Array.Empty<int>();
+        private IEnumerable<int> verses;
+        private IEnumerable<int> Verses { get { return verses; } set { verses = value; VersesChanged(); } }
         private string category = "Uncategorized";
         private int numChapters;
         private int numVerses;
@@ -66,7 +69,7 @@ namespace VerseApp.Components.Pieces
         private void OnBookChange()
         {
             chapter = 0;
-            verses = Array.Empty<int>();
+            Verses = Array.Empty<int>();
 
             numChapters = BibleStructure.GetNumberChapters(book);
             numVerses = 0;
@@ -74,7 +77,7 @@ namespace VerseApp.Components.Pieces
 
         private void OnChapterChange()
         {
-            verses = Array.Empty<int>();
+            Verses = Array.Empty<int>();
 
             numVerses = BibleStructure.GetNumberVerses(book, chapter);
         }
@@ -83,7 +86,7 @@ namespace VerseApp.Components.Pieces
         {
             try
             {
-                List<int> submitVerses = verses.ToList();
+                List<int> submitVerses = Verses.ToList();
                 submitVerses.Sort();
                 loading = true;
                 await verseservice.AddNewUserVerseAsync(userservice.currentUser.Id,
@@ -112,6 +115,22 @@ namespace VerseApp.Components.Pieces
         {
             showNewCategoryComponent = !showNewCategoryComponent;
             category = newCategory;
+        }
+
+        private async Task VersesChanged()
+        {
+            if (Verses == Array.Empty<int>())
+                return;
+
+            try
+            {
+                previewVerse = await BibleAPI.GetAPIVerseAsync(ReferenceParse.ConvertToReferenceString(book, chapter, Verses.ToList()), "kjv");
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
         }
     }
 }

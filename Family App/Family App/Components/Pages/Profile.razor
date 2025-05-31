@@ -3,19 +3,6 @@
 @namespace VerseApp.Components.Pages
 
 <MudStack Class="mt-16 px-8 d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.False">
-	<h3>Profile</h3>
-
-	@if (!loaded)
-    {
-
-        <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
-            <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
-                <MudSkeleton />
-                <MudSkeleton SkeletonType="SkeletonType.Circle" Width="50px" Height="50px" />
-                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="200px" Height="110px" />
-            </MudContainer>
-        </MudStack>
-    }
     @if (!string.IsNullOrWhiteSpace(errorMessage))
     {
         <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
@@ -35,10 +22,10 @@
 		@if (userservice.currentUser != null)
 		{
             <MudStack Row>
-                <MudAvatar Color="Color.Primary">@(userservice.currentUser.FullName.Substring(0,1))</MudAvatar>
+                <MudAvatar Size="Size.Large" Color="Color.Primary">@(userservice.currentUser.FullName.Substring(0,1))</MudAvatar>
                 <MudStack>
 			        <h4 style="margin-bottom: 0;">@userservice.currentUser.FullName</h4>
-                    <h6 style="margin-top: -10px;">@(userservice.currentUser.Username)</h6>
+                    <h6 style="margin-top: -10px;">@("@" + userservice.currentUser.Username)</h6>
                 </MudStack>
             </MudStack>
 			<h6>Verses memorized: 0</h6>

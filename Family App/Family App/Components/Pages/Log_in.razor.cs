@@ -102,7 +102,7 @@ namespace VerseApp.Components.Pages
                 {
                     if (_recoveryInfo.Username == username && _recoveryInfo.Email == hashedRecoveryEmail)
                     {
-                        await SendResetLink();
+                        await SendResetLink(_recoveryInfo);
                         loading = false;
                         return;
                     }
@@ -135,13 +135,12 @@ namespace VerseApp.Components.Pages
                 List<RecoveryInfo> recoveryInfo = await userservice.GetRecoveryInfoDBAsync();
 
                 string recoveryFullName = firstName.Trim().ToLower() + lastName.Trim().ToLower();
-                string hashedRecoveryEmail = PasswordHash.CreateHash(recoveryEmail.Trim());
 
                 foreach (var _recoveryInfo in recoveryInfo)
                 {
-                    if (_recoveryInfo.FullName == recoveryFullName && _recoveryInfo.Email == hashedRecoveryEmail)
+                    if (_recoveryInfo.FirstName + _recoveryInfo.LastName == recoveryFullName && PasswordHash.VerifyHash(recoveryEmail.Trim(), _recoveryInfo.Email))
                     {
-                        await SendResetLink();
+                        await SendResetLink(_recoveryInfo);
                         loading = false;
                         return;
                     }
@@ -157,15 +156,15 @@ namespace VerseApp.Components.Pages
             }
         }
 
-        private async Task SendResetLink()
+        private async Task SendResetLink(RecoveryInfo userRecovering)
         {
             try
             {
                 var email = new MailAddress(recoveryEmail);
                 string token = Guid.NewGuid().ToString();
-                string resetUrl = "";
+                string resetUrl = $"https://localhost:7093/resetpassword?token={token}&userid={userRecovering.Id}";
 
-                var sendingAddress = new MailAddress("joshrobertson0232@gmail.com");
+                var sendingAddress = new MailAddress("therealjoshrobertson@gmail.com");
                 string subject = "Reset Your Password";
                 string body = $"Click the link below to reset your password:\n\n{resetUrl}";
 
@@ -176,7 +175,7 @@ namespace VerseApp.Components.Pages
                     EnableSsl = true,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(sendingAddress.Address, emailPassword)
+                    Credentials = new NetworkCredential("therealjoshrobertson@gmail.com", "tofp kaki lkuv nffh")
                 };
 
                 using var message = new MailMessage(sendingAddress, email)
@@ -186,6 +185,7 @@ namespace VerseApp.Components.Pages
                 };
 
                 await smtp.SendMailAsync(message);
+                await userservice.ResetUserPasswordDBAsync(userRecovering.Id, token);
                 resetLinkSent = true;
             }
             catch (Exception ex)
@@ -252,24 +252,26 @@ namespace VerseApp.Components.Pages
 
                 string recoveryFullName = recoveryFirstName.Trim().ToLower() + recoveryLastName.Trim().ToLower();
                 string hashedRecoveryPassword = PasswordHash.CreateHash(passwordRecoverUsername.Trim());
-
+                string debug = "";
                 foreach (var _recoveryInfo in recoveryInfo)
                 {
-                    if (_recoveryInfo.FullName == recoveryFullName && _recoveryInfo.PasswordHash == hashedRecoveryPassword)
+                    debug = "";
+                    if (_recoveryInfo.FirstName + _recoveryInfo.LastName == recoveryFullName && PasswordHash.VerifyHash(passwordRecoverUsername.Trim(), _recoveryInfo.PasswordHash))
                     {
                         loading = false;
                         message = "Your username is " + _recoveryInfo.Username;
-                        return;
+                        return;                        
                     }
+                    debug += _recoveryInfo.FullName + " | " + recoveryFullName + " Password check: " + PasswordHash.VerifyHash(passwordRecoverUsername.Trim(), _recoveryInfo.PasswordHash).ToString();
                 }
 
-                message = "Your name or password is incorrect.";
+                message = "Your name or password is incorrect." + " _recoveryInfo.FullName: " + debug;
                 enteringName = true;
                 loading = false;
             }
             catch (Exception ex)
             {
-                errorMessage = ex.Message;
+                message = ex.Message;
                 if (errorMessage.ToLower().Contains("timed out"))
                 {
                     errorMessage += "\n (Retry count: " + retryCount + ") Retrying...";

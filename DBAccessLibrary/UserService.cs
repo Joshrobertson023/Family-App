@@ -12,6 +12,8 @@ using System.Globalization;
 
 namespace DBAccessLibrary
 {
+    // TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"))
+    // Returns current time in EST (where DB is located)
     public class UserService
     {
         public UserModel currentUser;
@@ -52,6 +54,7 @@ namespace DBAccessLibrary
                 if (!reader.IsDBNull(reader.GetOrdinal("EMAIL")))
                     currentUser.Email = reader.GetString(reader.GetOrdinal("EMAIL"));
                 currentUser.PasswordHash = reader.GetString(reader.GetOrdinal("HASHED_PASSWORD"));
+                currentUser.Status = reader.GetString(reader.GetOrdinal("STATUS"));
                 currentUser.DateRegistered = reader.GetDateTime(reader.GetOrdinal("DATE_REGISTERED"));
                 currentUser.LastSeen = reader.GetDateTime(reader.GetOrdinal("LAST_SEEN"));
                 if (!reader.IsDBNull(reader.GetOrdinal("DESCRIPTION")))
@@ -62,7 +65,6 @@ namespace DBAccessLibrary
                     currentUser.CurrentReadingPlan = reader.GetInt32(reader.GetOrdinal("CURRENT_READING_PLAN"));
                 if (!reader.IsDBNull(reader.GetOrdinal("LAST_PRACTICED_VERSE_ID")))
                     currentUser.LastPracticedVerse = reader.GetInt32(reader.GetOrdinal("LAST_PRACTICED_VERSE_ID"));
-                currentUser.IsKidsAccount = reader.GetInt32(reader.GetOrdinal("IS_KIDS_ACCOUNT"));
                 currentUser.IsDeleted = reader.GetInt32(reader.GetOrdinal("IS_DELETED"));
                 if (!reader.IsDBNull(reader.GetOrdinal("REASON_DELETED")))
                     currentUser.ReasonDeleted = reader.GetString(reader.GetOrdinal("REASON_DELETED"));
@@ -83,8 +85,8 @@ namespace DBAccessLibrary
 
         public async Task AddUserDBAsync(UserModel user)
         {
-            string query = @"INSERT INTO USERS (USERNAME, FIRST_NAME, LAST_NAME, EMAIL, HASHED_PASSWORD, DATE_REGISTERED, LAST_SEEN, IS_KIDS_ACCOUNT)
-                             VALUES (:username, :firstName, :lastName, :email, :userPassword, SYSDATE, SYSDATE, :isKidsAccount)";
+            string query = @"INSERT INTO USERS (USERNAME, FIRST_NAME, LAST_NAME, EMAIL, HASHED_PASSWORD, STATUS, DATE_REGISTERED, LAST_SEEN)
+                             VALUES (:username, :firstName, :lastName, :email, :userPassword, :status, SYSDATE, SYSDATE)";
 
             using OracleConnection conn = new OracleConnection(connectionString);
             await conn.OpenAsync();
@@ -97,7 +99,7 @@ namespace DBAccessLibrary
             if (user.Email != null)
                 cmd.Parameters.Add(new OracleParameter("email", user.Email));
             cmd.Parameters.Add(new OracleParameter("userPassword", user.PasswordHash));
-            cmd.Parameters.Add(new OracleParameter("isKidsAccount", user.IsKidsAccount));
+            cmd.Parameters.Add(new OracleParameter("status", user.Status));
 
             await cmd.ExecuteNonQueryAsync();
 
@@ -122,7 +124,7 @@ namespace DBAccessLibrary
             {
                 UserModel user = new UserModel
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("USERID")),
+                    Id = reader.GetInt32(reader.GetOrdinal("USER_ID")),
                     Username = reader.GetString(reader.GetOrdinal("USERNAME")),
                     PasswordHash = reader.GetString(reader.GetOrdinal("USERPASSWORD")),
                     DateRegistered = reader.GetDateTime(reader.GetOrdinal("DATEREGISTERED")),
@@ -137,7 +139,8 @@ namespace DBAccessLibrary
 
         public async Task GetAllUsernamesDBAsync()
         {
-            List<string> usernamesUnsorted = new List<string>();
+            //List<string> usernamesUnsorted = new List<string>();
+            usernames = new List<string>();
 
             string query = @"SELECT USERNAME FROM USERS";
 
@@ -151,10 +154,10 @@ namespace DBAccessLibrary
             {
                 string username = reader.GetString(reader.GetOrdinal("USERNAME"));
 
-                usernamesUnsorted.Add(username);
+                usernames.Add(username);
             }
 
-            usernames = Algorithms.QuickSortUsernames(usernamesUnsorted);
+            //usernames = Algorithms.QuickSortUsernames(usernamesUnsorted);
 
             conn.Close();
             conn.Dispose();
@@ -165,7 +168,7 @@ namespace DBAccessLibrary
             List<RecoveryInfo> recoveryInfo = new List<RecoveryInfo>();
             RecoveryInfo _recoveryInfo = new RecoveryInfo();
 
-            string query = @"SELECT FIRST_NAME, LAST_NAME, USERNAME, HASHED_PASSWORD, EMAIL FROM USERS";
+            string query = @"SELECT USER_ID, FIRST_NAME, LAST_NAME, USERNAME, HASHED_PASSWORD, EMAIL FROM USERS";
 
             OracleConnection conn = new OracleConnection(connectionString);
             await conn.OpenAsync();
@@ -175,6 +178,7 @@ namespace DBAccessLibrary
 
             while (await reader.ReadAsync())
             {
+                _recoveryInfo.Id = reader.GetInt32(reader.GetOrdinal("USER_ID"));
                 _recoveryInfo.FirstName = reader.GetString(reader.GetOrdinal("FIRST_NAME"));
                 _recoveryInfo.LastName = reader.GetString(reader.GetOrdinal("LAST_NAME"));
                 _recoveryInfo.Username = reader.GetString(reader.GetOrdinal("USERNAME"));
@@ -191,13 +195,43 @@ namespace DBAccessLibrary
             return recoveryInfo;
         }
 
+        public async Task ResetUserPasswordDBAsync(int userId, string token)
+        {
+            string query = @"INSERT INTO PASSWORD_RESETS (TOKEN, USER_ID, SENT)
+                             VALUES (:token, :userId, SYSDATE)";
+
+            using OracleConnection conn = new OracleConnection(connectionString);
+            await conn.OpenAsync();
+
+            using OracleCommand cmd = new OracleCommand(query, conn);
+
+            cmd.Parameters.Add(new OracleParameter("token", token));
+            cmd.Parameters.Add(new OracleParameter("userId", userId));
+
+            await cmd.ExecuteNonQueryAsync();
+            await AddUserForgotPasswordDBAsync(userId);
+        }
+        public async Task AddUserForgotPasswordDBAsync(int userId)
+        {
+            string query = @"UPDATE USERS 
+                             SET FORGOT_PASSWORD = FORGOT_PASSWORD + 1 
+                             WHERE USER_ID = :userId";
+
+            using OracleConnection conn = new OracleConnection(connectionString);
+            await conn.OpenAsync();
+
+            using OracleCommand cmd = new OracleCommand(query, conn);
+            cmd.Parameters.Add(new OracleParameter("userId", userId));
+            await cmd.ExecuteNonQueryAsync();
+        }
+
         public async Task GetUserCategoriesDBAsync(int userId)
         {
             //userVerses = new Dictionary<Verse, string>();
             currentUserCategories = new List<string>();
 
-            string query = @"SELECT DISTINCT CATEGORY FROM userverses 
-                             WHERE USERID = :userId";
+            string query = @"SELECT DISTINCT CATEGORY_NAME FROM USER_VERSES 
+                             WHERE USER_ID = :userId";
 
             OracleConnection conn = new OracleConnection(connectionString);
             await conn.OpenAsync();
@@ -227,12 +261,9 @@ namespace DBAccessLibrary
 
         public async Task SetUserActiveDBAsync(int userId)
         {
-            if (userId == null)
-                throw new ArgumentException("Fatal error setting user as active. User was null.");
-
             string query = @"UPDATE USERS 
                              SET LAST_SEEN = SYSDATE 
-                             WHERE USERID = :userId";
+                             WHERE USER_ID = :userId";
 
             using OracleConnection conn = new OracleConnection(connectionString);
             await conn.OpenAsync();
@@ -249,7 +280,7 @@ namespace DBAccessLibrary
 
             string query = @"UPDATE USERS 
                              SET HASHED_PASSWORD = :newHash 
-                             WHERE USERID = :userId";
+                             WHERE USER_ID = :userId";
 
             using OracleConnection conn = new OracleConnection(connectionString);
             await conn.OpenAsync();
@@ -258,6 +289,55 @@ namespace DBAccessLibrary
             cmd.Parameters.Add(new OracleParameter("newHash", passwordHash));
             cmd.Parameters.Add(new OracleParameter("userId", userId));
             await cmd.ExecuteNonQueryAsync();
+            await UpdateUserChangedPasswordDBAsync(userId);
+        }
+
+        public async Task UpdateUserChangedPasswordDBAsync(int userId)
+        {
+            if (userId == null)
+                throw new ArgumentException("Fatal error setting user as active. User was null.");
+
+            string query = @"UPDATE USERS 
+                             SET CHANGED_PASSWORD = CHANGED_PASSWORD + 1 
+                             WHERE USER_ID = :userId";
+
+            using OracleConnection conn = new OracleConnection(connectionString);
+            await conn.OpenAsync();
+
+            using OracleCommand cmd = new OracleCommand(query, conn);
+            cmd.Parameters.Add(new OracleParameter("userId", userId));
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<bool> VerifyTokenDBAsync(int userId, string token)
+        {
+            currentUserCategories = new List<string>();
+
+            string query = @"SELECT USER_ID, SENT FROM PASSWORD_RESETS 
+                             WHERE TOKEN = :token";
+
+            OracleConnection conn = new OracleConnection(connectionString);
+            await conn.OpenAsync();
+
+            OracleCommand cmd = new OracleCommand(query, conn);
+            cmd.Parameters.Add(new OracleParameter("token", token));
+            OracleDataReader reader = await cmd.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return false;
+
+            DateTime sent = reader.GetDateTime(reader.GetOrdinal("SENT"));
+            if (DateTime.Now > sent.AddHours(1))
+                return false;
+
+            int userIdToken = reader.GetInt32(reader.GetOrdinal("USER_ID"));
+            if (userIdToken != userId)
+                return false;
+
+            conn.Close();
+            conn.Dispose();
+
+            return true;
         }
 
         public void LogoutUser()

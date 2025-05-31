@@ -9,79 +9,98 @@
 
 @if (!string.IsNullOrWhiteSpace(errorMessage))
 {
-    <MudStack Class="d-flex flex-wrap align-content-start flex-grow-1" MaxWidth="MaxWidth.Large">
-        <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Small">
-            <MudPaper Class="pa-4">
-                <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
-                    Error loading data from the database.<br /><br />
-                    @errorMessage
-                </MudAlert>
-            </MudPaper>
-        </MudContainer>
-    </MudStack>
+    <MudAlert Severity="Severity.Error" Elevation="2" Class="mt-2">
+        @errorMessage
+    </MudAlert>
 }
 
-<MudStack Row>
-    <MudSelect @bind-Value="book"
-    Label="Book"
-    Variant="Variant.Outlined"
-    Style="width: 200px">
-        @foreach (var b in verseservice.books)
-        {
-            <MudSelectItem Value="@b.ToString()">@b</MudSelectItem>
-        }
-    </MudSelect>
-    @if (!string.IsNullOrEmpty(book))
-    {
-        <MudSelect @bind-Value="chapter"
+<MudStack>
+    <MudStack Row>
+        <MudSelect @bind-Value="book"
+        Label="Book"
         Variant="Variant.Outlined"
-        Label="Chapter"
-        Style="width: 100px">
-            @for (int i = 1; i <= numChapters; i++)
-            {
-                var localI = i;
-                <MudSelectItem Value="@localI">@localI</MudSelectItem>
-            }
-
-        </MudSelect>
-    }
-    @if (chapter > 0)
-    {
-        <MudSelect T="int"
-        @bind-SelectedValues="verses"
-        Variant="Variant.Outlined"
-        Label="Select Verses"
-        MultiSelection="true"
-        Style="width: 100px">
-            @for (int i = 1; i <= numVerses; i++)
-            {
-                var localI = i;
-                <MudSelectItem T="int" Value="@localI">@localI</MudSelectItem>
-            }
-
-        </MudSelect>
-    }
-    @if (verses.Any())
-    {
-        <MudSelect @bind-Value="category"
-        Variant="Variant.Outlined"
-        Label="Category"
         Style="width: 200px">
-            @foreach (var c in userservice.currentUserCategories)
+            @foreach (var b in verseservice.books)
             {
-                <MudSelectItem Value="c">@c</MudSelectItem>
+                <MudSelectItem Value="@b.ToString()">@b</MudSelectItem>
             }
         </MudSelect>
-        if (!showNewCategoryComponent)
+        @if (!string.IsNullOrEmpty(book))
         {
-            <MudButton OnClick="ToggleNewCategory" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">New Category</MudButton>
-        }
-        else
-        {
-            <NewCategory NewCategory="@newCategory" OnCategoryChange="SubmitCategory"></NewCategory>
-        }
+            <MudSelect @bind-Value="chapter"
+            Variant="Variant.Outlined"
+            Label="Chapter"
+            Style="width: 100px">
+                @for (int i = 1; i <= numChapters; i++)
+                {
+                    var localI = i;
+                    <MudSelectItem Value="@localI">@localI</MudSelectItem>
+                }
 
-        <MudButton OnClick="SubmitVerse" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verse</MudButton>
+            </MudSelect>
+        }
+        @if (chapter > 0)
+        {
+            <MudSelect T="int"
+            @bind-SelectedValues="Verses"
+            Variant="Variant.Outlined"
+            Label="Select Verses"
+            MultiSelection="true"
+            Style="width: 100px">
+                @for (int i = 1; i <= numVerses; i++)
+                {
+                    var _i = i;
+                    <MudSelectItem T="int" Value="@_i">@_i</MudSelectItem>
+                }
+
+            </MudSelect>
+        }
+        @if (Verses != null)
+        {
+            @if (Verses.Any())
+            {
+                <MudSelect @bind-Value="category"
+                Variant="Variant.Outlined"
+                Label="Category"
+                Style="width: 200px">
+                    @foreach (var c in userservice.currentUserCategories)
+                    {
+                        <MudSelectItem Value="c">@c</MudSelectItem>
+                    }
+                </MudSelect>
+                if (!showNewCategoryComponent)
+                {
+                    <MudButton OnClick="ToggleNewCategory" Variant="Variant.Text" Size="Size.Small" Color="Color.Primary" Class="ml-auto">New Category</MudButton>
+                }
+                else
+                {
+                    <NewCategory NewCategory="@newCategory" OnCategoryChange="SubmitCategory"></NewCategory>
+                }
+
+                <MudButton OnClick="SubmitVerse" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verse</MudButton>
+            }
+        }
+    </MudStack>
+    @if (Verses != null)
+    {
+        if (Verses.Any())
+        {
+            if (previewVerse != null)
+            {
+                foreach (var verse in _Verses)
+                {
+                    <Verse_App.Components.Pieces.DisplayVerse Verse="verse"></Verse_App.Components.Pieces.DisplayVerse>
+                }
+                if (loadingVerse)
+                }
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="400px" Height="0px" />
+                }
+            else
+            {
+                <MudSkeleton Width="400px" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="400px" Height="0px" />
+            }
+        }
     }
 </MudStack>
 

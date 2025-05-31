@@ -15,11 +15,12 @@
 		{
 			if (!addingVerse)
 			{
-				<MudButton OnClick="AddVerses" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verses</MudButton>
+				<MudButton OnClick="ToggleAddVerses" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add Verses</MudButton>
 			}
 			else
 			{
-				<Family_App.Components.Pieces.AddVerse AddingVerse="@addingVerse" OnVerseAdded="RefreshVerses"></Family_App.Components.Pieces.AddVerse>
+				<VerseApp.Components.Pieces.AddVerse AddingVerse="@addingVerse" OnVerseAdded="RefreshVerses"></VerseApp.Components.Pieces.AddVerse>
+				<MudButton OnClick="ToggleAddVerses" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
 			}
 			@foreach (var category in userservice.currentUserCategories)
 			{

@@ -59,12 +59,10 @@
                     <MudButton OnClick="ResetPasswordFullName" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Send Link</MudButton>
                     @if (resetLinkSent)
                     {
-                        <h5>Check your email for a reset link...</h5>
+                        <h5>Check your inbox for the reset link.</h5>
 
                         <br />
-                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
                         <MudButton OnClick="BackToLogin" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Back To Login</MudButton>
-                        <h6>Didn't add a recovery email? Please go to the following link and submit a help request: </h6>
                     }
                 </MudPaper>
             }
@@ -93,12 +91,13 @@
                 <MudButton OnClick="ResetPassword" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Reset Password</MudButton>
                 @if (resetLinkSent)
                 {
-                    <h5>Check your email for a reset link...</h5><br/>
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    <h5>Check your inbox for the reset link.</h5>
+
+                    <br />
                     <MudButton OnClick="BackToLogin" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Back To Login</MudButton>
-                    <h6>Didn't add a recovery email? Please go to the following link and submit a help request: </h6>
                 }
             </MudPaper>
+            <h6>Didn't add a recovery email? Please go to the following link and submit a help request: </h6>
         }
     }
 

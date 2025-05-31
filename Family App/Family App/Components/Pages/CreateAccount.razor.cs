@@ -30,6 +30,7 @@ public partial class CreateAccount : ComponentBase
     private int retryCount { get; set; } = 0;
     Random rand = new Random();
     private bool kidInfo { get; set; } = false;
+    private string version { get; set; } = "King James Version";
 
     private void ToggleHelp()
     {
@@ -124,18 +125,17 @@ public partial class CreateAccount : ComponentBase
             if (password != repeatPassword)
                 throw new Exception("Passwords do not match.");
 
-            if (password.Length < 12)
-                throw new Exception("Password is too short. Please use a password that is at least 12 characters long.");
+            if (password.Length < 11)
+                throw new Exception("Password is too short. Please use a password that is at least 11 characters long.");
 
             message = "";
             loading = true;
 
-            int kidsAccount = isKidsAccount == true ? 1 : 0;
-            string? hashedEmail = "EMPTY";
+            string hashedEmail = "";
             if (!string.IsNullOrEmpty(email))
                 hashedEmail = PasswordHash.CreateHash(email.Trim());
             string hashedPassword = PasswordHash.CreateHash(password.Trim());
-            await userservice.AddUserDBAsync(new UserModel(username, firstName, lastName, hashedEmail, hashedPassword, kidsAccount));
+            await userservice.AddUserDBAsync(new UserModel(username, firstName, lastName, hashedEmail, hashedPassword));
 
             loading = false;
             //SetCookies();
